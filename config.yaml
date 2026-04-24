@@ -1,0 +1,13 @@
+credentials:
+  usernames:
+    admin:
+      email: admin@rawah.org
+      name: مدير النظام
+      logged_in: False
+      password: $2b$12$NTSEmS1YcAQxXakymckSWe2JkTNebWWS.lbv.txCwoVDecXQHee96
+cookie:
+  expiry_days: 30
+  key: rawah_secret_key_123
+  name: rawah_auth_cookie
+preauthorized:
+  emails: []
