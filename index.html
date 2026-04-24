@@ -1,0 +1,2830 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>نظام رواح - إدارة الموارد والمشتريات والمصروفات</title>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Noto+Kufi+Arabic:wght@200;400;600;800;900&family=Noto+Sans+Arabic:wght@300;400;500;600;700&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <style>
+        :root {
+            --blue-900: #0B1D3A;
+            --blue-800: #0F2747;
+            --blue-700: #143256;
+            --blue-600: #1B4F8A;
+            --blue-500: #2563EB;
+            --blue-400: #4A8AF4;
+            --blue-300: #7FB3FF;
+            --blue-100: #DBEAFE;
+            --blue-50: #EFF6FF;
+            --orange-600: #EA580C;
+            --orange-500: #F97316;
+            --orange-400: #FB923C;
+            --orange-300: #FDBA74;
+            --orange-100: #FFEDD5;
+            --orange-50: #FFF7ED;
+            --green-500: #22C55E;
+            --green-100: #DCFCE7;
+            --red-500: #EF4444;
+            --red-100: #FEE2E2;
+            --yellow-500: #EAB308;
+            --yellow-100: #FEF9C3;
+            --gray-50: #F9FAFB;
+            --gray-100: #F3F4F6;
+            --gray-200: #E5E7EB;
+            --gray-300: #D1D5DB;
+            --gray-400: #9CA3AF;
+            --gray-500: #6B7280;
+            --gray-600: #4B5563;
+            --gray-700: #374151;
+            --gray-800: #1F2937;
+            --gray-900: #111827;
+            --sidebar-w: 280px;
+            --header-h: 64px;
+            --radius: 12px;
+            --radius-sm: 8px;
+            --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.08);
+            --shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+            --shadow-lg: 0 10px 40px rgba(0, 0, 0, 0.15);
+            --transition: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Noto Sans Arabic', sans-serif;
+            background: var(--gray-50);
+            color: var(--gray-800);
+            overflow-x: hidden;
+            min-height: 100vh;
+        }
+
+        h1,
+        h2,
+        h3,
+        h4,
+        h5 {
+            font-family: 'Noto Kufi Arabic', sans-serif;
+        }
+
+        .app-layout {
+            display: flex;
+            min-height: 100vh;
+        }
+
+        /* === الشريط الجانبي === */
+        .sidebar {
+            width: var(--sidebar-w);
+            background: linear-gradient(180deg, var(--blue-900) 0%, var(--blue-800) 50%, var(--blue-900) 100%);
+            position: fixed;
+            top: 0;
+            right: 0;
+            height: 100vh;
+            z-index: 100;
+            display: flex;
+            flex-direction: column;
+            transition: var(--transition);
+            overflow-y: auto;
+            border-left: 1px solid rgba(255, 255, 255, 0.06);
+        }
+
+        .sidebar-header {
+            padding: 20px 20px 18px;
+            text-align: center;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+        }
+
+        /* === الشعار الرسمي === */
+        .logo-img-wrapper {
+            width: 110px;
+            height: 110px;
+            margin: 0 auto 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+        }
+
+        .logo-img-wrapper img {
+            width: 70%;
+            height: 70%;
+            object-fit: contain;
+            opacity: 0.95;
+            transition: var(--transition);
+        }
+
+        .logo-img-wrapper:hover img {
+            opacity: 1;
+            transform: scale(1.03);
+        }
+
+        /* شعار ملون للتقارير */
+        .logo-img-colored {
+            filter: none !important;
+            opacity: 1 !important;
+        }
+
+        .logo-img-colored:hover {
+            transform: scale(1.02) !important;
+        }
+
+        .sidebar-header h2 {
+            color: #fff;
+            font-size: 19px;
+            font-weight: 800;
+            letter-spacing: 0.5px;
+        }
+
+        .sidebar-header p {
+            color: var(--blue-300);
+            font-size: 10.5px;
+            margin-top: 3px;
+            opacity: 0.75;
+        }
+
+        .sidebar-nav {
+            flex: 1;
+            padding: 14px 12px;
+        }
+
+        .nav-section-title {
+            color: var(--blue-300);
+            font-size: 10px;
+            font-weight: 600;
+            letter-spacing: 1px;
+            padding: 14px 12px 8px;
+            opacity: 0.6;
+        }
+
+        .nav-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 11px 14px;
+            border-radius: var(--radius-sm);
+            color: rgba(255, 255, 255, 0.6);
+            cursor: pointer;
+            transition: var(--transition);
+            margin-bottom: 2px;
+            font-size: 13.5px;
+            font-weight: 500;
+            position: relative;
+            user-select: none;
+        }
+
+        .nav-item:hover {
+            background: rgba(255, 255, 255, 0.08);
+            color: #fff;
+        }
+
+        .nav-item.active {
+            background: linear-gradient(135deg, var(--blue-500), var(--blue-600));
+            color: #fff;
+            box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3);
+        }
+
+        .nav-item.active::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 3px;
+            height: 60%;
+            background: var(--orange-500);
+            border-radius: 0 4px 4px 0;
+        }
+
+        .nav-item i {
+            width: 20px;
+            text-align: center;
+            font-size: 15px;
+        }
+
+        .nav-badge {
+            margin-right: auto;
+            background: var(--orange-500);
+            color: #fff;
+            font-size: 10px;
+            font-weight: 700;
+            padding: 2px 8px;
+            border-radius: 10px;
+            min-width: 20px;
+            text-align: center;
+        }
+
+        .sidebar-footer {
+            padding: 16px;
+            border-top: 1px solid rgba(255, 255, 255, 0.08);
+        }
+
+        .user-card {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px;
+            border-radius: var(--radius-sm);
+            background: rgba(255, 255, 255, 0.05);
+        }
+
+        .user-avatar {
+            width: 38px;
+            height: 38px;
+            border-radius: 10px;
+            background: linear-gradient(135deg, var(--orange-500), var(--orange-400));
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #fff;
+            font-weight: 700;
+            font-size: 14px;
+        }
+
+        .user-info span {
+            display: block;
+            color: #fff;
+            font-size: 12.5px;
+            font-weight: 600;
+        }
+
+        .user-info small {
+            color: var(--orange-300);
+            font-size: 10.5px;
+        }
+
+        /* === المحتوى الرئيسي === */
+        .main-content {
+            margin-right: var(--sidebar-w);
+            flex: 1;
+            min-height: 100vh;
+        }
+
+        .top-header {
+            height: var(--header-h);
+            background: #fff;
+            border-bottom: 1px solid var(--gray-200);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 28px;
+            position: sticky;
+            top: 0;
+            z-index: 50;
+        }
+
+        .header-right {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+        }
+
+        .header-logo-mini {
+            width: 36px;
+            height: 36px;
+            border-radius: 8px;
+            overflow: hidden;
+            border: 1.5px solid var(--gray-200);
+        }
+
+        .header-logo-mini img {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+            background: #fff;
+        }
+
+        .header-title {
+            font-family: 'Noto Kufi Arabic', sans-serif;
+            font-size: 17px;
+            font-weight: 700;
+            color: var(--blue-900);
+        }
+
+        .header-actions {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .role-selector {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            background: var(--gray-50);
+            border: 1px solid var(--gray-200);
+            border-radius: var(--radius-sm);
+            padding: 6px 14px;
+            font-size: 12.5px;
+            color: var(--gray-600);
+        }
+
+        .role-selector select {
+            border: none;
+            background: transparent;
+            font-family: inherit;
+            font-size: 12.5px;
+            color: var(--blue-600);
+            font-weight: 600;
+            cursor: pointer;
+            outline: none;
+            direction: rtl;
+        }
+
+        .page-content {
+            padding: 24px 28px;
+        }
+
+        /* === البطاقات === */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+            gap: 18px;
+            margin-bottom: 24px;
+        }
+
+        .stat-card {
+            background: #fff;
+            border-radius: var(--radius);
+            padding: 22px;
+            box-shadow: var(--shadow-sm);
+            border: 1px solid var(--gray-100);
+            position: relative;
+            overflow: hidden;
+            transition: var(--transition);
+        }
+
+        .stat-card:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow);
+        }
+
+        .stat-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            right: 0;
+            width: 4px;
+            height: 100%;
+            border-radius: 0 var(--radius) var(--radius) 0;
+        }
+
+        .stat-card.blue::before {
+            background: linear-gradient(180deg, var(--blue-500), var(--blue-400));
+        }
+
+        .stat-card.orange::before {
+            background: linear-gradient(180deg, var(--orange-500), var(--orange-400));
+        }
+
+        .stat-card.green::before {
+            background: linear-gradient(180deg, var(--green-500), #4ADE80);
+        }
+
+        .stat-card.red::before {
+            background: linear-gradient(180deg, var(--red-500), #F87171);
+        }
+
+        .stat-card .stat-icon {
+            width: 44px;
+            height: 44px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+            margin-bottom: 14px;
+        }
+
+        .stat-card.blue .stat-icon {
+            background: var(--blue-100);
+            color: var(--blue-500);
+        }
+
+        .stat-card.orange .stat-icon {
+            background: var(--orange-100);
+            color: var(--orange-500);
+        }
+
+        .stat-card.green .stat-icon {
+            background: var(--green-100);
+            color: var(--green-500);
+        }
+
+        .stat-card.red .stat-icon {
+            background: var(--red-100);
+            color: var(--red-500);
+        }
+
+        .stat-label {
+            font-size: 12px;
+            color: var(--gray-500);
+            font-weight: 500;
+            margin-bottom: 6px;
+        }
+
+        .stat-value {
+            font-family: 'Noto Kufi Arabic', sans-serif;
+            font-size: 24px;
+            font-weight: 800;
+            color: var(--gray-900);
+            line-height: 1.2;
+        }
+
+        .stat-value .currency {
+            font-size: 13px;
+            font-weight: 500;
+            color: var(--gray-400);
+            margin-right: 4px;
+        }
+
+        .stat-change {
+            font-size: 11px;
+            margin-top: 6px;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .stat-change.up {
+            color: var(--green-500);
+        }
+
+        .stat-change.down {
+            color: var(--red-500);
+        }
+
+        /* === الجداول === */
+        .card {
+            background: #fff;
+            border-radius: var(--radius);
+            box-shadow: var(--shadow-sm);
+            border: 1px solid var(--gray-100);
+            overflow: hidden;
+        }
+
+        .card-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 18px 22px;
+            border-bottom: 1px solid var(--gray-100);
+        }
+
+        .card-title {
+            font-family: 'Noto Kufi Arabic', sans-serif;
+            font-size: 15px;
+            font-weight: 700;
+            color: var(--blue-900);
+        }
+
+        .card-body {
+            padding: 0;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        thead th {
+            background: var(--gray-50);
+            padding: 12px 16px;
+            font-size: 11.5px;
+            font-weight: 600;
+            color: var(--gray-500);
+            text-align: right;
+            border-bottom: 1px solid var(--gray-200);
+            white-space: nowrap;
+        }
+
+        tbody td {
+            padding: 14px 16px;
+            font-size: 13px;
+            color: var(--gray-700);
+            border-bottom: 1px solid var(--gray-100);
+            vertical-align: middle;
+        }
+
+        tbody tr {
+            transition: var(--transition);
+        }
+
+        tbody tr:hover {
+            background: var(--blue-50);
+        }
+
+        tbody tr:last-child td {
+            border-bottom: none;
+        }
+
+        /* === الأزرار === */
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 9px 18px;
+            border-radius: var(--radius-sm);
+            font-family: inherit;
+            font-size: 13px;
+            font-weight: 600;
+            border: none;
+            cursor: pointer;
+            transition: var(--transition);
+            white-space: nowrap;
+            user-select: none;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--blue-500), var(--blue-600));
+            color: #fff;
+            box-shadow: 0 2px 8px rgba(37, 99, 235, 0.25);
+        }
+
+        .btn-primary:hover {
+            box-shadow: 0 4px 16px rgba(37, 99, 235, 0.35);
+            transform: translateY(-1px);
+        }
+
+        .btn-orange {
+            background: linear-gradient(135deg, var(--orange-500), var(--orange-600));
+            color: #fff;
+            box-shadow: 0 2px 8px rgba(249, 115, 22, 0.25);
+        }
+
+        .btn-orange:hover {
+            box-shadow: 0 4px 16px rgba(249, 115, 22, 0.35);
+            transform: translateY(-1px);
+        }
+
+        .btn-success {
+            background: linear-gradient(135deg, var(--green-500), #16A34A);
+            color: #fff;
+        }
+
+        .btn-success:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(34, 197, 94, 0.3);
+        }
+
+        .btn-danger {
+            background: var(--red-500);
+            color: #fff;
+        }
+
+        .btn-ghost {
+            background: transparent;
+            color: var(--gray-600);
+            border: 1px solid var(--gray-200);
+        }
+
+        .btn-ghost:hover {
+            background: var(--gray-50);
+            border-color: var(--gray-300);
+        }
+
+        .btn-sm {
+            padding: 6px 12px;
+            font-size: 12px;
+        }
+
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none !important;
+        }
+
+        /* === الحالات === */
+        .badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-size: 11px;
+            font-weight: 600;
+        }
+
+        .badge-pending {
+            background: var(--yellow-100);
+            color: #A16207;
+        }
+
+        .badge-approved {
+            background: var(--blue-100);
+            color: var(--blue-600);
+        }
+
+        .badge-completed {
+            background: var(--green-100);
+            color: #15803D;
+        }
+
+        .badge-rejected {
+            background: var(--red-100);
+            color: #B91C1C;
+        }
+
+        /* === النماذج === */
+        .form-group {
+            margin-bottom: 16px;
+        }
+
+        .form-label {
+            display: block;
+            font-size: 12.5px;
+            font-weight: 600;
+            color: var(--gray-700);
+            margin-bottom: 6px;
+        }
+
+        .form-input,
+        .form-select,
+        .form-textarea {
+            width: 100%;
+            padding: 10px 14px;
+            border: 1.5px solid var(--gray-200);
+            border-radius: var(--radius-sm);
+            font-family: inherit;
+            font-size: 13px;
+            color: var(--gray-800);
+            background: #fff;
+            transition: var(--transition);
+            outline: none;
+            direction: rtl;
+        }
+
+        .form-input:focus,
+        .form-select:focus,
+        .form-textarea:focus {
+            border-color: var(--blue-400);
+            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+        }
+
+        .form-textarea {
+            resize: vertical;
+            min-height: 80px;
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 14px;
+        }
+
+        /* === المودال === */
+        .modal-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(11, 29, 58, 0.5);
+            backdrop-filter: blur(4px);
+            z-index: 200;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            animation: fadeIn 0.2s ease;
+        }
+
+        .modal-overlay.active {
+            display: flex;
+        }
+
+        .modal {
+            background: #fff;
+            border-radius: 16px;
+            width: 95%;
+            max-width: 600px;
+            max-height: 90vh;
+            overflow-y: auto;
+            box-shadow: var(--shadow-lg);
+            animation: slideUp 0.3s ease;
+        }
+
+        .modal-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 20px 24px;
+            border-bottom: 1px solid var(--gray-100);
+        }
+
+        .modal-header h3 {
+            font-family: 'Noto Kufi Arabic', sans-serif;
+            font-size: 16px;
+            font-weight: 700;
+            color: var(--blue-900);
+        }
+
+        .modal-close {
+            width: 32px;
+            height: 32px;
+            border-radius: 8px;
+            border: none;
+            background: var(--gray-100);
+            color: var(--gray-500);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: var(--transition);
+        }
+
+        .modal-close:hover {
+            background: var(--red-100);
+            color: var(--red-500);
+        }
+
+        .modal-body {
+            padding: 24px;
+        }
+
+        .modal-footer {
+            padding: 16px 24px;
+            border-top: 1px solid var(--gray-100);
+            display: flex;
+            align-items: center;
+            justify-content: flex-start;
+            gap: 10px;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+            }
+
+            to {
+                opacity: 1;
+            }
+        }
+
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* === Toast === */
+        .toast-container {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            z-index: 999;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .toast {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 14px 20px;
+            border-radius: var(--radius-sm);
+            background: #fff;
+            box-shadow: var(--shadow-lg);
+            font-size: 13px;
+            font-weight: 500;
+            animation: toastIn 0.3s ease, toastOut 0.3s ease 3s forwards;
+            min-width: 300px;
+            border-right: 4px solid;
+        }
+
+        .toast.success {
+            border-color: var(--green-500);
+        }
+
+        .toast.success i {
+            color: var(--green-500);
+        }
+
+        .toast.error {
+            border-color: var(--red-500);
+        }
+
+        .toast.error i {
+            color: var(--red-500);
+        }
+
+        .toast.warning {
+            border-color: var(--yellow-500);
+        }
+
+        .toast.warning i {
+            color: var(--yellow-500);
+        }
+
+        .toast.info {
+            border-color: var(--blue-500);
+        }
+
+        .toast.info i {
+            color: var(--blue-500);
+        }
+
+        @keyframes toastIn {
+            from {
+                opacity: 0;
+                transform: translateX(-20px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
+        @keyframes toastOut {
+            from {
+                opacity: 1;
+            }
+
+            to {
+                opacity: 0;
+                transform: translateX(-20px);
+            }
+        }
+
+        /* === الرسوم البيانية === */
+        .charts-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 18px;
+            margin-bottom: 24px;
+        }
+
+        .chart-wrapper {
+            position: relative;
+            height: 280px;
+            padding: 16px;
+        }
+
+        /* === التقارير المطبوعة === */
+        .report-preview {
+            background: #fff;
+            border: 1px solid var(--gray-200);
+            border-radius: var(--radius);
+            padding: 40px;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        .report-header-section {
+            text-align: center;
+            border-bottom: 3px solid var(--blue-600);
+            padding-bottom: 20px;
+            margin-bottom: 24px;
+        }
+
+        /* شعار التقرير */
+        .report-logo-wrapper {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 12px;
+        }
+
+        .report-logo-wrapper img {
+            height: 70px;
+            width: auto;
+            object-fit: contain;
+        }
+
+        .report-org-name {
+            font-family: 'Noto Kufi Arabic', sans-serif;
+            font-size: 26px;
+            font-weight: 900;
+            color: var(--blue-900);
+            margin-bottom: 4px;
+        }
+
+        .report-doc-title {
+            font-family: 'Noto Kufi Arabic', sans-serif;
+            font-size: 18px;
+            font-weight: 700;
+            color: var(--orange-600);
+        }
+
+        .report-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 16px 0;
+        }
+
+        .report-table th,
+        .report-table td {
+            border: 1px solid var(--gray-300);
+            padding: 10px 14px;
+            font-size: 13px;
+            text-align: right;
+        }
+
+        .report-table th {
+            background: var(--blue-900);
+            color: #fff;
+            font-weight: 600;
+        }
+
+        .report-table tr:nth-child(even) td {
+            background: var(--gray-50);
+        }
+
+        .report-total-row td {
+            background: var(--orange-100) !important;
+            font-weight: 700;
+            font-size: 14px;
+        }
+
+        .report-amount-words {
+            background: var(--blue-50);
+            border: 1px dashed var(--blue-300);
+            border-radius: var(--radius-sm);
+            padding: 14px 18px;
+            margin: 16px 0;
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--blue-700);
+        }
+
+        .report-signatures {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 30px;
+            margin-top: 40px;
+            text-align: center;
+        }
+
+        .report-signatures .sig-box {
+            border-top: 1px solid var(--gray-400);
+            padding-top: 8px;
+        }
+
+        .report-signatures .sig-box span {
+            display: block;
+            font-size: 12px;
+            color: var(--gray-600);
+            margin-bottom: 4px;
+        }
+
+        /* === القيود === */
+        .journal-entry {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+            background: var(--gray-50);
+            border-radius: var(--radius-sm);
+            padding: 16px;
+            margin: 12px 0;
+            border: 1px solid var(--gray-200);
+        }
+
+        .journal-side {
+            padding: 12px;
+            border-radius: var(--radius-sm);
+        }
+
+        .journal-side.debit {
+            background: var(--orange-50);
+            border: 1px solid var(--orange-200);
+        }
+
+        .journal-side.credit {
+            background: var(--blue-50);
+            border: 1px solid var(--blue-200);
+        }
+
+        .journal-side h5 {
+            font-size: 12px;
+            font-weight: 700;
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .journal-side.debit h5 {
+            color: var(--orange-600);
+        }
+
+        .journal-side.credit h5 {
+            color: var(--blue-600);
+        }
+
+        /* === الصفحات === */
+        .page {
+            display: none;
+        }
+
+        .page.active {
+            display: block;
+            animation: fadeIn 0.3s ease;
+        }
+
+        .grid-2 {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 18px;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 8px;
+            background: var(--gray-200);
+            border-radius: 4px;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            border-radius: 4px;
+            transition: width 0.8s ease;
+        }
+
+        .progress-fill.blue {
+            background: linear-gradient(90deg, var(--blue-400), var(--blue-500));
+        }
+
+        .progress-fill.orange {
+            background: linear-gradient(90deg, var(--orange-400), var(--orange-500));
+        }
+
+        .bg-pattern {
+            position: fixed;
+            inset: 0;
+            z-index: -1;
+            opacity: 0.03;
+            background-image:
+                radial-gradient(circle at 20% 80%, var(--blue-500) 0%, transparent 50%),
+                radial-gradient(circle at 80% 20%, var(--orange-500) 0%, transparent 50%),
+                radial-gradient(circle at 50% 50%, var(--blue-500) 0%, transparent 70%);
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: var(--gray-400);
+        }
+
+        .empty-state i {
+            font-size: 48px;
+            margin-bottom: 16px;
+            opacity: 0.4;
+        }
+
+        .empty-state p {
+            font-size: 14px;
+        }
+
+        ::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: var(--gray-300);
+            border-radius: 3px;
+        }
+
+        .amount-cell {
+            font-family: 'Noto Kufi Arabic', sans-serif;
+            font-weight: 700;
+            color: var(--blue-900);
+            font-size: 13.5px;
+        }
+
+        .info-box {
+            display: flex;
+            align-items: flex-start;
+            gap: 10px;
+            padding: 14px 16px;
+            border-radius: var(--radius-sm);
+            font-size: 13px;
+            margin-bottom: 16px;
+        }
+
+        .info-box.blue {
+            background: var(--blue-50);
+            border: 1px solid var(--blue-200);
+            color: var(--blue-700);
+        }
+
+        .info-box.orange {
+            background: var(--orange-50);
+            border: 1px solid var(--orange-200);
+            color: #9A3412;
+        }
+
+        .tab-group {
+            display: flex;
+            gap: 2px;
+            background: var(--gray-100);
+            border-radius: var(--radius-sm);
+            padding: 3px;
+        }
+
+        .tab-btn {
+            padding: 7px 16px;
+            border: none;
+            background: transparent;
+            font-family: inherit;
+            font-size: 12.5px;
+            font-weight: 600;
+            color: var(--gray-500);
+            border-radius: 6px;
+            cursor: pointer;
+            transition: var(--transition);
+        }
+
+        .tab-btn.active {
+            background: #fff;
+            color: var(--blue-600);
+            box-shadow: var(--shadow-sm);
+        }
+
+        .pulse-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: var(--green-500);
+            display: inline-block;
+            animation: pulse 2s ease infinite;
+        }
+
+        @keyframes pulse {
+
+            0%,
+            100% {
+                opacity: 1;
+                transform: scale(1);
+            }
+
+            50% {
+                opacity: 0.5;
+                transform: scale(1.3);
+            }
+        }
+
+        .divider {
+            height: 1px;
+            background: linear-gradient(90deg, transparent, var(--gray-200), transparent);
+            margin: 20px 0;
+        }
+
+        @media print {
+            body, html {
+                background: white !important;
+                height: auto !important;
+                overflow: visible !important;
+            }
+
+            .sidebar, .header, .report-sidebar, .tab-btn, .no-print, button, .modal-overlay {
+                display: none !important;
+            }
+
+            .main-content, .page, .page-content, .reports-container, .report-viewer, .report-section, .report-preview {
+                margin: 0 !important;
+                padding: 0 !important;
+                width: 100% !important;
+                height: auto !important;
+                max-height: none !important;
+                overflow: visible !important;
+                position: static !important;
+                display: block !important;
+            }
+
+            .page:not(#page-reports) {
+                display: none !important;
+            }
+
+            .report-section[style*="none"] {
+                display: none !important;
+            }
+
+            .report-preview {
+                border: none !important;
+                box-shadow: none !important;
+            }
+        }
+
+        @media (max-width: 1024px) {
+
+            .charts-grid,
+            .grid-2 {
+                grid-template-columns: 1fr;
+            }
+
+            .form-row {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .sidebar {
+                transform: translateX(100%);
+            }
+
+            .sidebar.open {
+                transform: translateX(0);
+            }
+
+            .main-content {
+                margin-right: 0;
+            }
+
+            .stats-grid {
+                grid-template-columns: 1fr 1fr;
+            }
+
+            .report-signatures {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="bg-pattern"></div>
+    <div class="toast-container" id="toastContainer"></div>
+
+    <div class="app-layout">
+
+        <!-- الشريط الجانبي -->
+        <aside class="sidebar" id="sidebar">
+            <div class="sidebar-header">
+                <div class="logo-img-wrapper">
+                    <img src="data:image/jpeg;base64,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"
+                        alt="شعار منظمة رواح">
+                </div>
+                <h2>منظمة رواح</h2>
+                <p>نظام إدارة الموارد والمصروفات</p>
+            </div>
+
+            <nav class="sidebar-nav">
+                <div class="nav-section-title">الرئيسية</div>
+                <div class="nav-item active" data-page="dashboard" onclick="navigateTo('dashboard')">
+                    <i class="fas fa-chart-pie"></i> لوحة المعلومات
+                </div>
+                <div class="nav-section-title">الدورة المستندية</div>
+                <div class="nav-item" data-page="purchase-requests" onclick="navigateTo('purchase-requests')">
+                    <i class="fas fa-file-invoice"></i> طلبات الشراء
+                    <span class="nav-badge" id="prBadge">0</span>
+                </div>
+                <div class="nav-item" data-page="payment-vouchers" onclick="navigateTo('payment-vouchers')">
+                    <i class="fas fa-money-check-alt"></i> أوامر الصرف
+                    <span class="nav-badge" id="pvBadge">0</span>
+                </div>
+                <div class="nav-item" data-page="payment-completion" onclick="navigateTo('payment-completion')">
+                    <i class="fas fa-check-double"></i> اكتمال الدفع
+                    <span class="nav-badge" id="pcBadge">0</span>
+                </div>
+                <div class="nav-section-title">الحسابات</div>
+                <div class="nav-item" data-page="accounts" onclick="navigateTo('accounts')">
+                    <i class="fas fa-university"></i> الأرصدة والحسابات
+                </div>
+                <div class="nav-item" data-page="journal" onclick="navigateTo('journal')">
+                    <i class="fas fa-book"></i> دفتر اليومية
+                </div>
+                <div class="nav-section-title">التقارير</div>
+                <div class="nav-item" data-page="reports" onclick="navigateTo('reports')">
+                    <i class="fas fa-print"></i> التقارير والسندات
+                </div>
+                <div class="nav-section-title" id="navUsersSection" style="display:none;">إدارة النظام</div>
+                <div class="nav-item" id="navUsers" data-page="users" onclick="navigateTo('users')" style="display:none;">
+                    <i class="fas fa-users-cog"></i> إدارة المستخدمين
+                </div>
+                <div class="nav-item" id="navProjects" data-page="projects" onclick="navigateTo('projects')" style="display:none;">
+                    <i class="fas fa-project-diagram"></i> إدارة المشاريع
+                </div>
+                <div class="nav-item" id="navAdminCats" data-page="admin-cats" onclick="navigateTo('admin-cats')" style="display:none;">
+                    <i class="fas fa-tags"></i> المصروفات الإدارية
+                </div>
+                <div class="nav-item" id="navDonors" data-page="donors" onclick="navigateTo('donors')" style="display:none;">
+                    <i class="fas fa-hand-holding-heart"></i> الجهات المانحة
+                </div>
+            </nav>
+
+            <div class="sidebar-footer">
+                <div class="user-card" style="justify-content: space-between;">
+                    <div style="display: flex; align-items: center; gap: 10px; overflow: hidden;">
+                        <div class="user-avatar" id="userAvatar" style="flex-shrink: 0;">م</div>
+                        <div class="user-info" style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
+                            <span id="userName" style="display: block; overflow: hidden; text-overflow: ellipsis;">محمد أحمد</span>
+                            <small id="userRole" style="display: block; overflow: hidden; text-overflow: ellipsis;">محاسب تنفيذ دفع</small>
+                        </div>
+                    </div>
+                    <button class="btn btn-ghost btn-sm" onclick="logout()" title="تسجيل خروج" style="color: #EF4444; padding: 8px; flex-shrink: 0; background: rgba(239, 68, 68, 0.1); border-radius: 8px;">
+                        <i class="fas fa-sign-out-alt"></i>
+                    </button>
+                </div>
+            </div>
+        </aside>
+
+        <!-- المحتوى الرئيسي -->
+        <main class="main-content">
+
+            <header class="top-header">
+                <div class="header-right">
+                    <button class="btn-ghost btn-sm" id="menuToggle" onclick="toggleSidebar()" style="display:none;">
+                        <i class="fas fa-bars"></i>
+                    </button>
+                    <div class="header-logo-mini">
+                        <img src="data:image/jpeg;base64,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"
+                            alt="رواح">
+                    </div>
+                    <h1 class="header-title" id="pageTitle">لوحة المعلومات</h1>
+                    <span class="pulse-dot"></span>
+                </div>
+                <div class="header-actions">
+                    <div class="role-selector">
+                        <i class="fas fa-user-shield"></i>
+                        <span>الدور:</span>
+                        <select id="roleSelector" onchange="changeRole(this.value)">
+                            <option value="employee">موظف طلب</option>
+                            <option value="manager">مدير اعتماد</option>
+                            <option value="accountant" selected>محاسب تنفيذ دفع</option>
+                        </select>
+                    </div>
+                    <span style="font-size:12px;color:var(--gray-400);" id="currentDate"></span>
+                </div>
+            </header>
+
+            <!-- لوحة المعلومات -->
+            <div class="page active" id="page-dashboard">
+                <div class="page-content">
+                    <div class="stats-grid">
+                        <div class="stat-card blue">
+                            <div class="stat-icon"><i class="fas fa-vault"></i></div>
+                            <div class="stat-label">رصيد الخزينة</div>
+                            <div class="stat-value"><span class="currency">ج.س</span> <span class="count-up"
+                                    id="cashBalance">0</span></div>
+                            <div class="stat-change up"><i class="fas fa-arrow-up"></i> متاح فوراً</div>
+                        </div>
+                        <div class="stat-card blue">
+                            <div class="stat-icon"><i class="fas fa-landmark"></i></div>
+                            <div class="stat-label">رصيد البنك</div>
+                            <div class="stat-value"><span class="currency">ج.س</span> <span class="count-up"
+                                    id="bankBalance">0</span></div>
+                            <div class="stat-change up"><i class="fas fa-building-columns"></i> البنك السوداني</div>
+                        </div>
+                        <div class="stat-card orange">
+                            <div class="stat-icon"><i class="fas fa-file-invoice-dollar"></i></div>
+                            <div class="stat-label">إجمالي المصروفات</div>
+                            <div class="stat-value"><span class="currency">ج.س</span> <span class="count-up"
+                                    id="totalExpenses">0</span></div>
+                            <div class="stat-change down"><i class="fas fa-arrow-down"></i> هذا الشهر</div>
+                        </div>
+                        <div class="stat-card green">
+                            <div class="stat-icon"><i class="fas fa-wallet"></i></div>
+                            <div class="stat-label">إجمالي السيولة</div>
+                            <div class="stat-value"><span class="currency">ج.س</span> <span class="count-up"
+                                    id="totalLiquidity">0</span></div>
+                            <div class="stat-change up"><i class="fas fa-check-circle"></i> خزينة + بنك</div>
+                        </div>
+                    </div>
+                    <div class="charts-grid">
+                        <div class="card">
+                            <div class="card-header">
+                                <h3 class="card-title">توزيع المصروفات</h3>
+                            </div>
+                            <div class="card-body">
+                                <div class="chart-wrapper"><canvas id="expenseChart"></canvas></div>
+                            </div>
+                        </div>
+                        <div class="card">
+                            <div class="card-header">
+                                <h3 class="card-title">المصروفات الشهرية</h3>
+                            </div>
+                            <div class="card-body">
+                                <div class="chart-wrapper"><canvas id="monthlyChart"></canvas></div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="grid-2">
+                        <div class="card">
+                            <div class="card-header">
+                                <h3 class="card-title">آخر طلبات الشراء</h3>
+                                <button class="btn btn-sm btn-primary" onclick="navigateTo('purchase-requests')">عرض
+                                    الكل</button>
+                            </div>
+                            <div class="card-body">
+                                <table>
+                                    <thead>
+                                        <tr>
+                                            <th>الرقم</th>
+                                            <th>البند</th>
+                                            <th>المبلغ</th>
+                                            <th>الحالة</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="recentPRTable">
+                                        <tr>
+                                            <td colspan="4"
+                                                style="text-align:center;color:var(--gray-400);padding:16px;">لا توجد
+                                                طلبات</td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                        <div class="card">
+                            <div class="card-header">
+                                <h3 class="card-title">آخر أوامر الصرف</h3>
+                                <button class="btn btn-sm btn-primary" onclick="navigateTo('payment-vouchers')">عرض
+                                    الكل</button>
+                            </div>
+                            <div class="card-body">
+                                <table>
+                                    <thead>
+                                        <tr>
+                                            <th>الرقم</th>
+                                            <th>طريقة الدفع</th>
+                                            <th>المبلغ</th>
+                                            <th>الحالة</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="recentPVTable">
+                                        <tr>
+                                            <td colspan="4"
+                                                style="text-align:center;color:var(--gray-400);padding:16px;">لا توجد
+                                                أوامر</td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- طلبات الشراء -->
+            <div class="page" id="page-purchase-requests">
+                <div class="page-content">
+                    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;">
+                        <div>
+                            <h2
+                                style="font-size:20px;font-weight:800;color:var(--blue-900);font-family:'Noto Kufi Arabic';">
+                                إدارة طلبات الشراء</h2>
+                            <p style="font-size:13px;color:var(--gray-500);margin-top:4px;">المرحلة الأولى من الدورة
+                                المستندية</p>
+                        </div>
+                        <button class="btn btn-primary" id="btnNewPR" onclick="openModal('prModal')"><i
+                                class="fas fa-plus"></i> طلب شراء جديد</button>
+                    </div>
+                    <div class="card">
+                        <div class="card-body">
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th>رقم الطلب</th>
+                                        <th>التاريخ</th>
+                                        <th>نوع البند</th>
+                                        <th>الوصف</th>
+                                        <th>المشروع / المانح</th>
+                                        <th>المبلغ التقديري (ج.س)</th>
+                                        <th>الحالة</th>
+                                        <th>الإجراءات</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="prTableBody">
+                                    <tr>
+                                        <td colspan="8">
+                                            <div class="empty-state"><i class="fas fa-inbox"></i>
+                                                <p>لا توجد طلبات شراء. أنشئ طلبك الأول.</p>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- أوامر الصرف -->
+            <div class="page" id="page-payment-vouchers">
+                <div class="page-content">
+                    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;">
+                        <div>
+                            <h2
+                                style="font-size:20px;font-weight:800;color:var(--blue-900);font-family:'Noto Kufi Arabic';">
+                                أوامر الصرف</h2>
+                            <p style="font-size:13px;color:var(--gray-500);margin-top:4px;">المرحلة الثانية - إنشاء إذن
+                                الصرف</p>
+                        </div>
+                        <button class="btn btn-orange" id="btnNewPV" onclick="openModal('pvModal')"><i
+                                class="fas fa-plus"></i> أمر صرف جديد</button>
+                    </div>
+                    <div class="card">
+                        <div class="card-body">
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th>رقم الأمر</th>
+                                        <th>التاريخ</th>
+                                        <th>طلب الشراء</th>
+                                        <th>طريقة الدفع</th>
+                                        <th>المبلغ (ج.س)</th>
+                                        <th>الحالة</th>
+                                        <th>الإجراءات</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="pvTableBody">
+                                    <tr>
+                                        <td colspan="7">
+                                            <div class="empty-state"><i class="fas fa-inbox"></i>
+                                                <p>لا توجد أوامر صرف.</p>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- اكتمال الدفع -->
+            <div class="page" id="page-payment-completion">
+                <div class="page-content">
+                    <div style="margin-bottom:20px;">
+                        <h2
+                            style="font-size:20px;font-weight:800;color:var(--blue-900);font-family:'Noto Kufi Arabic';">
+                            اكتمال الدفع</h2>
+                        <p style="font-size:13px;color:var(--gray-500);margin-top:4px;">المرحلة الثالثة - تأكيد خروج
+                            المبلغ الفعلي وتحديث الأرصدة</p>
+                    </div>
+                    <div class="info-box orange">
+                        <i class="fas fa-exclamation-triangle" style="margin-top:2px;"></i>
+                        <div><strong>تنبيه:</strong> عند الضغط على "تأكيد الدفع" سيتم خصم المبلغ فوراً من الحساب المصدر
+                            وتحديث الأرصدة وتوليد القيد المحاسبي تلقائياً.</div>
+                    </div>
+                    <div class="card">
+                        <div class="card-body">
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th>رقم الأمر</th>
+                                        <th>البند</th>
+                                        <th>طريقة الدفع</th>
+                                        <th>الحساب المصدر</th>
+                                        <th>المبلغ (ج.س)</th>
+                                        <th>الحالة</th>
+                                        <th>الإجراء</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="pcTableBody">
+                                    <tr>
+                                        <td colspan="7">
+                                            <div class="empty-state"><i class="fas fa-inbox"></i>
+                                                <p>لا توجد أوامر صرف معتمدة تنتظر التنفيذ.</p>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- الأرصدة والحسابات -->
+            <div class="page" id="page-accounts">
+                <div class="page-content">
+                    <div style="margin-bottom:20px;">
+                        <h2
+                            style="font-size:20px;font-weight:800;color:var(--blue-900);font-family:'Noto Kufi Arabic';">
+                            الأرصدة والحسابات</h2>
+                        <p style="font-size:13px;color:var(--gray-500);margin-top:4px;">عرض مفصل لجميع الحسابات والأرصدة
+                            بالجنيه السوداني</p>
+                    </div>
+                    <div class="stats-grid">
+                        <div class="stat-card blue">
+                            <div class="stat-icon"><i class="fas fa-vault"></i></div>
+                            <div class="stat-label">الخزينة</div>
+                            <div class="stat-value"><span class="currency">ج.س</span> <span id="accCash">0</span></div>
+                        </div>
+                        <div class="stat-card blue">
+                            <div class="stat-icon"><i class="fas fa-landmark"></i></div>
+                            <div class="stat-label">البنك</div>
+                            <div class="stat-value"><span class="currency">ج.س</span> <span id="accBank">0</span></div>
+                        </div>
+                        <div class="stat-card orange">
+                            <div class="stat-icon"><i class="fas fa-building"></i></div>
+                            <div class="stat-label">المنصرفات الإدارية</div>
+                            <div class="stat-value"><span class="currency">ج.س</span> <span id="accAdmin">0</span></div>
+                        </div>
+                        <div class="stat-card orange">
+                            <div class="stat-icon"><i class="fas fa-project-diagram"></i></div>
+                            <div class="stat-label">مصروفات المشاريع</div>
+                            <div class="stat-value"><span class="currency">ج.س</span> <span id="accProject">0</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="grid-2">
+                        <div class="card">
+                            <div class="card-header">
+                                <h3 class="card-title">تفاصيل المنصرفات الإدارية</h3>
+                            </div>
+                            <div class="card-body">
+                                <table>
+                                    <thead>
+                                        <tr>
+                                            <th>البند</th>
+                                            <th>المبلغ (ج.س)</th>
+                                            <th>النسبة</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="adminExpTable"></tbody>
+                                </table>
+                            </div>
+                        </div>
+                        <div class="card">
+                            <div class="card-header">
+                                <h3 class="card-title">تفاصيل مصروفات المشاريع</h3>
+                            </div>
+                            <div class="card-body">
+                                <table>
+                                    <thead>
+                                        <tr>
+                                            <th>المشروع</th>
+                                            <th>المانح</th>
+                                            <th>المبلغ (ج.س)</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="projExpTable"></tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- دفتر اليومية -->
+            <div class="page" id="page-journal">
+                <div class="page-content">
+                    <div style="margin-bottom:20px;">
+                        <h2
+                            style="font-size:20px;font-weight:800;color:var(--blue-900);font-family:'Noto Kufi Arabic';">
+                            دفتر اليومية العامة</h2>
+                        <p style="font-size:13px;color:var(--gray-500);margin-top:4px;">جميع القيود المحاسبية بنظام
+                            القيد المزدوج</p>
+                    </div>
+                    <div class="card">
+                        <div class="card-body">
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th>رقم القيد</th>
+                                        <th>التاريخ</th>
+                                        <th>البيان</th>
+                                        <th>الحساب المدين</th>
+                                        <th>المبلغ المدين</th>
+                                        <th>الحساب الدائن</th>
+                                        <th>المبلغ الدائن</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="journalTableBody">
+                                    <tr>
+                                        <td colspan="7">
+                                            <div class="empty-state"><i class="fas fa-book-open"></i>
+                                                <p>لا توجد قيود محاسبية بعد.</p>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- التقارير -->
+            <div class="page" id="page-reports">
+                <div class="page-content no-print">
+                    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;">
+                        <div>
+                            <h2
+                                style="font-size:20px;font-weight:800;color:var(--blue-900);font-family:'Noto Kufi Arabic';">
+                                التقارير والسندات</h2>
+                            <p style="font-size:13px;color:var(--gray-500);margin-top:4px;">استخراج سندات وتقارير تحمل
+                                شعار منظمة رواح</p>
+                        </div>
+                        <button class="btn btn-ghost btn-sm" onclick="resetDB()" title="إعادة تعيين البيانات"><i
+                                class="fas fa-rotate-right"></i> إعادة تعيين</button>
+                    </div>
+                    <div class="tab-group" style="margin-bottom:20px;">
+                        <button class="tab-btn active" onclick="switchReportTab('budget',this)">تقرير الميزانية
+                            الكلية</button>
+                        <button class="tab-btn" onclick="switchReportTab('voucher',this)">سند صرف</button>
+                        <button class="tab-btn" onclick="switchReportTab('receipt',this)">سند قبض</button>
+                        <button class="tab-btn" onclick="switchReportTab('pr',this)">طلب شراء</button>
+                    </div>
+                    <div id="report-budget" class="report-section">
+                        <div style="text-align:left;margin-bottom:16px;"><button class="btn btn-primary"
+                                onclick="printReport()"><i class="fas fa-print"></i> طباعة التقرير</button></div>
+                        <div class="report-preview" id="budgetReport"></div>
+                    </div>
+                    <div id="report-voucher" class="report-section" style="display:none;">
+                        <div style="margin-bottom:16px;display:flex;justify-content:space-between;align-items:center;">
+                            <div class="form-row" style="max-width:500px;flex:1;">
+                                <div class="form-group"><label class="form-label">اختر أمر صرف منفذ</label><select
+                                        class="form-select" id="voucherSelect" onchange="generateVoucherReport()">
+                                        <option value="">-- اختر --</option>
+                                    </select></div>
+                            </div>
+                            <button class="btn btn-primary" onclick="printReport()"><i class="fas fa-print"></i> طباعة</button>
+                        </div>
+                        <div class="report-preview" id="voucherReport"></div>
+                    </div>
+                    <div id="report-receipt" class="report-section" style="display:none;">
+                        <div style="text-align:left;margin-bottom:16px;"><button class="btn btn-primary" onclick="printReport()"><i class="fas fa-print"></i> طباعة</button></div>
+                        <div class="report-preview">
+                            <div class="report-header-section">
+                                <div class="report-logo-wrapper"><img
+                                        src="data:image/jpeg;base64,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"
+                                        alt="شعار رواح" class="logo-img-colored"></div>
+                                <div class="report-org-name">منظمة رواح</div>
+                                <div class="report-doc-title">سند قبض</div>
+                            </div>
+                            <div style="padding:30px;text-align:center;color:var(--gray-400);"><i class="fas fa-receipt"
+                                    style="font-size:40px;margin-bottom:12px;opacity:0.3;"></i>
+                                <p>يتم إنشاء سندات القبض تلقائياً عند تسجيل إيرادات جديدة</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div id="report-pr" class="report-section" style="display:none;">
+                        <div style="margin-bottom:16px;display:flex;justify-content:space-between;align-items:center;">
+                            <div class="form-row" style="max-width:500px;flex:1;">
+                                <div class="form-group"><label class="form-label">اختر طلب شراء</label><select
+                                        class="form-select" id="prReportSelect" onchange="generatePRReport()">
+                                        <option value="">-- اختر --</option>
+                                    </select></div>
+                            </div>
+                            <button class="btn btn-primary" onclick="printReport()"><i class="fas fa-print"></i> طباعة</button>
+                        </div>
+                        <div class="report-preview" id="prReport"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- إدارة المستخدمين -->
+            <div class="page" id="page-users">
+                <div class="page-content">
+                    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;">
+                        <div>
+                            <h2 style="font-size:20px;font-weight:800;color:var(--blue-900);font-family:'Noto Kufi Arabic';">إدارة المستخدمين</h2>
+                            <p style="font-size:13px;color:var(--gray-500);margin-top:4px;">إضافة وتعديل وحذف مستخدمي النظام والصلاحيات</p>
+                        </div>
+                        <button class="btn btn-primary" onclick="openUserModal()"><i class="fas fa-user-plus"></i> مستخدم جديد</button>
+                    </div>
+                    <div class="card">
+                        <div class="card-body">
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th>اسم المستخدم</th>
+                                        <th>الاسم الكامل</th>
+                                        <th>الدور (الصلاحية)</th>
+                                        <th>الإجراءات</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="usersTableBody">
+                                    <tr><td colspan="4" style="text-align:center;">جاري تحميل المستخدمين...</td></tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- إدارة المشاريع -->
+            <div class="page" id="page-projects">
+                <div class="page-content">
+                    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;">
+                        <div>
+                            <h2 style="font-size:20px;font-weight:800;color:var(--blue-900);font-family:'Noto Kufi Arabic';">إدارة المشاريع</h2>
+                            <p style="font-size:13px;color:var(--gray-500);margin-top:4px;">إضافة وتعديل وحذف مشاريع المنظمة</p>
+                        </div>
+                        <button class="btn btn-primary" onclick="openProjectModal()"><i class="fas fa-plus"></i> مشروع جديد</button>
+                    </div>
+                    <div class="card">
+                        <div class="card-body">
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th>معرف المشروع</th>
+                                        <th>اسم المشروع</th>
+                                        <th>الإجراءات</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="projectsTableBody">
+                                    <tr><td colspan="3" style="text-align:center;">جاري تحميل المشاريع...</td></tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- إدارة المصروفات الإدارية -->
+            <div class="page" id="page-admin-cats">
+                <div class="page-content">
+                    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;">
+                        <div>
+                            <h2 style="font-size:20px;font-weight:800;color:var(--blue-900);font-family:'Noto Kufi Arabic';">إدارة المصروفات الإدارية</h2>
+                            <p style="font-size:13px;color:var(--gray-500);margin-top:4px;">تعديل فئات المصروفات وإضافة فئات جديدة</p>
+                        </div>
+                        <button class="btn btn-primary" onclick="openAdminCatModal()"><i class="fas fa-plus"></i> فئة جديدة</button>
+                    </div>
+                    <div class="card">
+                        <div class="card-body">
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th>معرف الفئة</th>
+                                        <th>اسم الفئة</th>
+                                        <th>الإجراءات</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="adminCatsTableBody">
+                                    <tr><td colspan="3" style="text-align:center;">جاري تحميل الفئات...</td></tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- إدارة المانحين -->
+            <div class="page" id="page-donors">
+                <div class="page-content">
+                    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;">
+                        <div>
+                            <h2 style="font-size:20px;font-weight:800;color:var(--blue-900);font-family:'Noto Kufi Arabic';">إدارة الجهات المانحة</h2>
+                            <p style="font-size:13px;color:var(--gray-500);margin-top:4px;">تعديل الجهات المانحة وإضافة جهات جديدة</p>
+                        </div>
+                        <button class="btn btn-primary" onclick="openDonorModal()"><i class="fas fa-plus"></i> جهة جديدة</button>
+                    </div>
+                    <div class="card">
+                        <div class="card-body">
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th>معرف الجهة</th>
+                                        <th>اسم الجهة المانحة</th>
+                                        <th>الإجراءات</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="donorsTableBody">
+                                    <tr><td colspan="3" style="text-align:center;">جاري تحميل الجهات المانحة...</td></tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </main>
+    </div>
+
+    <!-- مودال الفئات الإدارية -->
+    <div class="modal-overlay" id="adminCatModal">
+        <div class="modal">
+            <div class="modal-header">
+                <h3 id="adminCatModalTitle"><i class="fas fa-tags" style="color:var(--blue-500);margin-left:8px;"></i>إضافة فئة إدارية</h3>
+                <button class="modal-close" onclick="closeModal('adminCatModal')"><i class="fas fa-times"></i></button>
+            </div>
+            <div class="modal-body">
+                <form id="adminCatForm">
+                    <input type="hidden" id="editAdminCatId">
+                    <div class="form-group">
+                        <label class="form-label">معرف الفئة (يترك فارغاً للتوليد التلقائي)</label>
+                        <input type="text" class="form-input" id="ac_id" placeholder="مثال: transport">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">اسم الفئة</label>
+                        <input type="text" class="form-input" id="ac_name" required>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-primary" onclick="submitAdminCat()"><i class="fas fa-save"></i> حفظ</button>
+                <button class="btn btn-ghost" onclick="closeModal('adminCatModal')">إلغاء</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- مودال المشاريع -->
+    <div class="modal-overlay" id="projectModal">
+        <div class="modal">
+            <div class="modal-header">
+                <h3 id="projectModalTitle"><i class="fas fa-project-diagram" style="color:var(--blue-500);margin-left:8px;"></i>إضافة مشروع</h3>
+                <button class="modal-close" onclick="closeModal('projectModal')"><i class="fas fa-times"></i></button>
+            </div>
+            <div class="modal-body">
+                <form id="projectForm">
+                    <input type="hidden" id="editProjectId">
+                    <div class="form-group">
+                        <label class="form-label">معرف المشروع (يترك فارغاً للتوليد التلقائي)</label>
+                        <input type="text" class="form-input" id="p_id" placeholder="مثال: education">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">اسم المشروع</label>
+                        <input type="text" class="form-input" id="p_name" required>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-primary" onclick="submitProject()"><i class="fas fa-save"></i> حفظ</button>
+                <button class="btn btn-ghost" onclick="closeModal('projectModal')">إلغاء</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- مودال المستخدمين -->
+    <div class="modal-overlay" id="userModal">
+        <div class="modal">
+            <div class="modal-header">
+                <h3 id="userModalTitle"><i class="fas fa-user" style="color:var(--blue-500);margin-left:8px;"></i>إضافة مستخدم</h3>
+                <button class="modal-close" onclick="closeModal('userModal')"><i class="fas fa-times"></i></button>
+            </div>
+            <div class="modal-body">
+                <form id="userForm">
+                    <input type="hidden" id="editUserId">
+                    <div class="form-group">
+                        <label class="form-label">اسم المستخدم (للدخول)</label>
+                        <input type="text" class="form-input" id="u_username" required>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">الاسم الكامل</label>
+                        <input type="text" class="form-input" id="u_name" required>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">كلمة المرور</label>
+                        <input type="password" class="form-input" id="u_password" placeholder="اتركه فارغاً إذا لا تريد تغييره عند التعديل">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">الدور (الصلاحية)</label>
+                        <select class="form-select" id="u_role">
+                            <option value="admin">مدير نظام</option>
+                            <option value="manager">مدير اعتماد</option>
+                            <option value="accountant">محاسب تنفيذ دفع</option>
+                            <option value="employee">موظف طلب</option>
+                        </select>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-primary" onclick="submitUser()"><i class="fas fa-save"></i> حفظ</button>
+                <button class="btn btn-ghost" onclick="closeModal('userModal')">إلغاء</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- مودال طلب شراء -->
+    <div class="modal-overlay" id="prModal">
+        <div class="modal">
+            <div class="modal-header">
+                <h3><i class="fas fa-file-invoice" style="color:var(--blue-500);margin-left:8px;"></i>طلب شراء جديد</h3>
+                <button class="modal-close" onclick="closeModal('prModal')"><i class="fas fa-times"></i></button>
+            </div>
+            <div class="modal-body">
+                <div class="form-row">
+                    <div class="form-group"><label class="form-label">نوع البند</label><select class="form-select"
+                            id="prItemType" onchange="toggleProjectFields()">
+                            <option value="admin">إداري</option>
+                            <option value="project">مشروع</option>
+                        </select></div>
+                    <div class="form-group"><label class="form-label">التاريخ</label><input type="date"
+                            class="form-input" id="prDate"></div>
+                </div>
+                <div class="form-group" id="adminCategoryGroup"><label class="form-label">بند المنصرفات
+                        الإدارية</label><select class="form-select" id="prAdminCategory">
+                    </select></div>
+                <div id="projectFieldsGroup" style="display:none;">
+                    <div class="form-row">
+                        <div class="form-group"><label class="form-label">المشروع</label><select class="form-select"
+                                id="prProject">
+                            </select></div>
+                        <div class="form-group"><label class="form-label">المانح</label><select class="form-select"
+                                id="prDonor">
+                            </select></div>
+                    </div>
+                </div>
+                <div class="form-group"><label class="form-label">وصف الطلب</label><textarea class="form-textarea"
+                        id="prDescription" placeholder="أدخل وصفاً تفصيلياً للطلب..."></textarea></div>
+                <div class="form-group"><label class="form-label">المبلغ التقديري (ج.س)</label><input type="number"
+                        class="form-input" id="prAmount" placeholder="0.00" min="0" step="0.01"></div>
+                <div class="form-group"><label class="form-label">إرفاق صورة الفاتورة (اختياري)</label><input
+                        type="file" class="form-input" id="prAttachment" accept="image/*" style="padding:8px;"></div>
+            </div>
+            <div class="modal-footer"><button class="btn btn-primary" onclick="submitPurchaseRequest()"><i
+                        class="fas fa-save"></i> حفظ الطلب</button><button class="btn btn-ghost"
+                    onclick="closeModal('prModal')">إلغاء</button></div>
+        </div>
+    </div>
+
+    <!-- مودال أمر صرف -->
+    <div class="modal-overlay" id="pvModal">
+        <div class="modal">
+            <div class="modal-header">
+                <h3><i class="fas fa-money-check-alt" style="color:var(--orange-500);margin-left:8px;"></i>أمر صرف جديد
+                </h3><button class="modal-close" onclick="closeModal('pvModal')"><i class="fas fa-times"></i></button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group"><label class="form-label">طلب الشراء المرتبط</label><select class="form-select"
+                        id="pvLinkedPR" onchange="fillPVFromPR()">
+                        <option value="">-- اختر طلب شراء معتمد --</option>
+                    </select></div>
+                <div class="form-row">
+                    <div class="form-group"><label class="form-label">التاريخ</label><input type="date"
+                            class="form-input" id="pvDate"></div>
+                    <div class="form-group"><label class="form-label">طريقة الدفع</label><select class="form-select"
+                            id="pvPayMethod" onchange="updatePVSource()">
+                            <option value="cash">نقد (من الخزينة)</option>
+                            <option value="bank">تحويل بنكي</option>
+                            <option value="cheque">شيك</option>
+                        </select></div>
+                </div>
+                <div class="form-group"><label class="form-label">الحساب المصدر</label><input type="text"
+                        class="form-input" id="pvSource" readonly></div>
+                <div class="form-group"><label class="form-label">المبلغ (ج.س)</label><input type="number"
+                        class="form-input" id="pvAmount" placeholder="0.00" min="0" step="0.01"></div>
+                <div class="form-group"><label class="form-label">ملاحظات</label><textarea class="form-textarea"
+                        id="pvNotes" placeholder="أي ملاحظات إضافية..."></textarea></div>
+            </div>
+            <div class="modal-footer"><button class="btn btn-orange" onclick="submitPaymentVoucher()"><i
+                        class="fas fa-save"></i> إنشاء أمر الصرف</button><button class="btn btn-ghost"
+                    onclick="closeModal('pvModal')">إلغاء</button></div>
+        </div>
+    </div>
+
+    <!-- مودال تفاصيل القيد -->
+    <div class="modal-overlay" id="journalModal">
+        <div class="modal" style="max-width:500px;">
+            <div class="modal-header">
+                <h3><i class="fas fa-book" style="color:var(--blue-500);margin-left:8px;"></i>تفاصيل القيد المحاسبي</h3>
+                <button class="modal-close" onclick="closeModal('journalModal')"><i class="fas fa-times"></i></button>
+            </div>
+            <div class="modal-body" id="journalDetailBody"></div>
+        </div>
+    </div>
+    <!-- Print Preview Modal -->
+    <div class="modal-overlay" id="printPreviewModal">
+        <div class="modal" style="max-width: 900px; width: 90%; height: 90vh; display: flex; flex-direction: column;">
+            <div class="modal-header">
+                <h3><i class="fas fa-file-pdf" style="color:var(--orange-500);margin-left:8px;"></i> معاينة الطباعة</h3>
+                <button class="modal-close" onclick="closeModal('printPreviewModal')"><i class="fas fa-times"></i></button>
+            </div>
+            <div class="modal-body" style="flex: 1; padding: 0; background: #525659; overflow: hidden;">
+                <iframe id="pdfPreviewIframe" style="width: 100%; height: 100%; border: none;"></iframe>
+            </div>
+            <div class="modal-footer" style="padding: 16px;">
+                <button class="btn btn-secondary" onclick="closeModal('printPreviewModal')">إلغاء</button>
+                <button class="btn btn-primary" onclick="executePrint()"><i class="fas fa-print"></i> طباعة الآن</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Supabase JS -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script>
+        const SUPABASE_URL = 'YOUR_SUPABASE_URL_HERE';
+        const SUPABASE_KEY = 'YOUR_SUPABASE_ANON_KEY_HERE';
+        let supabase = null;
+        try {
+            supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+        } catch(e) { console.error("Supabase not configured yet"); }
+
+        const ipcRenderer = {
+            invoke: async function(channel, data) {
+                if(!DB.users) DB.users = [{ id: 1, username: 'admin', password: 'admin', role: 'admin', name: 'المدير العام' }];
+                if(!DB.projects) DB.projects = [{ id: 'education', name: 'مشروع التعليم' }, { id: 'health', name: 'مشروع الصحة' }, { id: 'water', name: 'مشروع المياه' }, { id: 'food', name: 'مشروع الأمن الغذائي' }, { id: 'protection', name: 'مشروع الحماية' }];
+                if(!DB.adminCats) DB.adminCats = [{ id: 'rent', name: 'إيجار المكتب' }, { id: 'salaries', name: 'رواتب الكادر' }, { id: 'utilities', name: 'فواتير الكهرباء والمياه' }, { id: 'telecom', name: 'الاتصالات' }, { id: 'supplies', name: 'قرطاسية ومستلزمات' }, { id: 'maintenance', name: 'صيانة' }, { id: 'other_admin', name: 'أخرى إدارية' }];
+                if(!DB.donors) DB.donors = [{ id: 'unicef', name: 'اليونيسيف (UNICEF)' }, { id: 'unhcr', name: 'المفوضية (UNHCR)' }, { id: 'who', name: 'منظمة الصحة (WHO)' }, { id: 'wfp', name: 'برنامج الأغذية (WFP)' }, { id: 'ngo', name: 'منظمة غير حكومية' }, { id: 'private', name: 'قطاع خاص' }];
+
+                if(channel === 'get-users') return DB.users;
+                if(channel === 'add-user') { data.id = Date.now(); DB.users.push(data); saveDB(); return {success:true}; }
+                if(channel === 'edit-user') { const i = DB.users.findIndex(u=>u.id===data.id); if(i>-1) DB.users[i]=data; saveDB(); return {success:true}; }
+                if(channel === 'delete-user') { DB.users = DB.users.filter(u=>u.id!==data); saveDB(); return {success:true}; }
+                
+                if(channel === 'get-projects') return DB.projects;
+                if(channel === 'add-project') { data.id = data.id || 'proj_'+Date.now(); DB.projects.push(data); saveDB(); return {success:true}; }
+                if(channel === 'edit-project') { const i = DB.projects.findIndex(p=>p.id===data.id); if(i>-1) DB.projects[i]=data; saveDB(); return {success:true}; }
+                if(channel === 'delete-project') { DB.projects = DB.projects.filter(p=>p.id!==data); saveDB(); return {success:true}; }
+
+                if(channel === 'get-admin-cats') return DB.adminCats;
+                if(channel === 'add-admin-cat') { data.id = data.id || 'admin_'+Date.now(); DB.adminCats.push(data); saveDB(); return {success:true}; }
+                if(channel === 'edit-admin-cat') { const i = DB.adminCats.findIndex(c=>c.id===data.id); if(i>-1) DB.adminCats[i]=data; saveDB(); return {success:true}; }
+                if(channel === 'delete-admin-cat') { DB.adminCats = DB.adminCats.filter(c=>c.id!==data); saveDB(); return {success:true}; }
+
+                if(channel === 'get-donors') return DB.donors;
+                if(channel === 'add-donor') { data.id = data.id || 'donor_'+Date.now(); DB.donors.push(data); saveDB(); return {success:true}; }
+                if(channel === 'edit-donor') { const i = DB.donors.findIndex(d=>d.id===data.id); if(i>-1) DB.donors[i]=data; saveDB(); return {success:true}; }
+                if(channel === 'delete-donor') { DB.donors = DB.donors.filter(d=>d.id!==data); saveDB(); return {success:true}; }
+                
+                return null;
+            }
+        };
+
+        let loggedUser = { name: "المدير العام (Streamlit)", role: "admin", username: "admin" };
+
+        function logout() {
+            showToast('الرجاء استخدام زر تسجيل الخروج في القائمة الجانبية', 'info');
+        }
+
+        /* رابط الشعار الرسمي */
+        const LOGO_URL = 'data:image/jpeg;base64,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';
+
+        /* === الأسماء === */
+        let ADMIN_CATEGORIES = {};
+        let PROJECT_NAMES = {};
+        let DONOR_NAMES = {};
+        const PAY_METHODS = { cash: 'نقد', bank: 'تحويل بنكي', cheque: 'شيك' };
+        const STATUS_MAP = { pending: { label: 'قيد الاعتماد', class: 'badge-pending' }, approved: { label: 'معتمد', class: 'badge-approved' }, voucher_created: { label: 'تم إنشاء أمر الصرف', class: 'badge-approved' }, paid: { label: 'مكتمل الدفع', class: 'badge-completed' }, rejected: { label: 'مرفوض', class: 'badge-rejected' } };
+
+        /* === قاعدة البيانات === */
+        let DB = {
+            accounts: { cash: { name: 'الخزينة', balance: 0 }, bank: { name: 'البنك السوداني', balance: 7000000 }, admin_expenses: { name: 'المنصرفات الإدارية', balance: 0 }, project_expenses: { name: 'مصروفات المشاريع', balance: 0 }, admin_rent: { name: 'إيجار المكتب', balance: 0 }, admin_salaries: { name: 'رواتب الكادر', balance: 0 }, admin_utilities: { name: 'الكهرباء والمياه', balance: 0 }, admin_telecom: { name: 'الاتصالات', balance: 0 }, admin_supplies: { name: 'قرطاسية ومستلزمات', balance: 0 }, admin_maintenance: { name: 'صيانة', balance: 0 }, admin_other: { name: 'أخرى إدارية', balance: 0 } },
+            purchaseRequests: [], paymentVouchers: [], journalEntries: [],
+            counters: { pr: 0, pv: 0, je: 0 }
+        };
+
+        async function loadDB() { 
+            if(!localStorage.getItem('v5_cleared')) {
+                localStorage.removeItem('rawah_db');
+                localStorage.setItem('v5_cleared', '1');
+            }
+            if (supabase && SUPABASE_URL !== 'YOUR_SUPABASE_URL_HERE') {
+                try {
+                    const { data, error } = await supabase.from('rawah_data').select('data_json').eq('id', 1).single();
+                    if (data && data.data_json) {
+                        DB = data.data_json;
+                        return;
+                    }
+                } catch(e) { console.error('Supabase load error:', e); }
+            }
+            const s = localStorage.getItem('rawah_db'); 
+            if (s) try { DB = JSON.parse(s); } catch (e) { } 
+        }
+        async function saveDB() { 
+            localStorage.setItem('rawah_db', JSON.stringify(DB)); 
+            if (supabase && SUPABASE_URL !== 'YOUR_SUPABASE_URL_HERE') {
+                try {
+                    await supabase.from('rawah_data').upsert({ id: 1, data_json: DB });
+                } catch(e) { console.error('Supabase save error:', e); }
+            }
+        }
+        async function resetDB() { 
+            localStorage.removeItem('rawah_db'); 
+            if(supabase && SUPABASE_URL !== 'YOUR_SUPABASE_URL_HERE') await supabase.from('rawah_data').delete().eq('id', 1);
+            location.reload(); 
+        }
+
+        /* === تحويل الأرقام لكلمات === */
+        function numberToArabicWords(n) {
+            if (n === 0) return 'صفر';
+            if (n < 0) return 'سالب ' + numberToArabicWords(Math.abs(n));
+            const ones = ['', 'واحد', 'اثنان', 'ثلاثة', 'أربعة', 'خمسة', 'ستة', 'سبعة', 'ثمانية', 'تسعة', 'عشرة', 'أحد عشر', 'اثنا عشر', 'ثلاثة عشر', 'أربعة عشر', 'خمسة عشر', 'ستة عشر', 'سبعة عشر', 'ثمانية عشر', 'تسعة عشر'];
+            const tens = ['', '', 'عشرون', 'ثلاثون', 'أربعون', 'خمسون', 'ستون', 'سبعون', 'ثمانون', 'تسعون'];
+            const huns = ['', 'مائة', 'مائتان', 'ثلاثمائة', 'أربعمائة', 'خمسمائة', 'ستمائة', 'سبعمائة', 'ثمانمائة', 'تسعمائة'];
+            function c(n) { if (n === 0) return ''; if (n < 20) return ones[n]; if (n < 100) { const t = Math.floor(n / 10), o = n % 10; return o === 0 ? tens[t] : ones[o] + ' و' + tens[t]; } const h = Math.floor(n / 100), r = n % 100; return huns[h] + (r > 0 ? ' و' + c(r) : ''); }
+            let r = '';
+            const m = Math.floor(n / 1000000); if (m > 0) { r += m === 1 ? 'مليون' : m === 2 ? 'مليونان' : m <= 10 ? c(m) + ' ملايين' : c(m) + ' مليوناً'; n %= 1000000; if (n > 0) r += ' و'; }
+            const t = Math.floor(n / 1000); if (t > 0) { r += t === 1 ? 'ألف' : t === 2 ? 'ألفان' : t <= 10 ? c(t) + ' آلاف' : c(t) + ' ألفاً'; n %= 1000; if (n > 0) r += ' و'; }
+            if (n > 0) r += c(n); return r;
+        }
+        function amountInWords(a) { const i = Math.floor(a), f = Math.round((a - i) * 100); let w = numberToArabicWords(i) + ' جنيه سوداني'; if (f > 0) w += ' و' + numberToArabicWords(f) + ' قرشاً'; return w; }
+        function formatSDG(a) { return new Intl.NumberFormat('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(a); }
+
+        /* === الصلاحيات === */
+        let currentRole = 'accountant';
+        const ROLE_PERM = { admin: { label: 'مدير نظام', canCreatePR: true, canApprovePR: true, canCreatePV: true, canCompletePayment: true }, employee: { label: 'موظف طلب', canCreatePR: true, canApprovePR: false, canCreatePV: false, canCompletePayment: false }, manager: { label: 'مدير اعتماد', canCreatePR: true, canApprovePR: true, canCreatePV: true, canCompletePayment: false }, accountant: { label: 'محاسب تنفيذ دفع', canCreatePR: true, canApprovePR: true, canCreatePV: true, canCompletePayment: true } };
+        function hasPermission(p) { return ROLE_PERM[currentRole] && ROLE_PERM[currentRole][p]; }
+        
+        function changeRole(r) { 
+            currentRole = r; 
+            document.getElementById('userRole').textContent = ROLE_PERM[r] ? ROLE_PERM[r].label : 'غير معروف'; 
+            document.getElementById('btnNewPR').style.display = hasPermission('canCreatePR') ? '' : 'none'; 
+            document.getElementById('btnNewPV').style.display = hasPermission('canCreatePV') ? '' : 'none'; 
+            
+            if(r === 'admin') {
+                document.getElementById('navUsers').style.display = '';
+                document.getElementById('navProjects').style.display = '';
+                document.getElementById('navAdminCats').style.display = '';
+                document.getElementById('navDonors').style.display = '';
+                document.getElementById('navUsersSection').style.display = '';
+            } else {
+                document.getElementById('navUsers').style.display = 'none';
+                document.getElementById('navProjects').style.display = 'none';
+                document.getElementById('navAdminCats').style.display = 'none';
+                document.getElementById('navDonors').style.display = 'none';
+                document.getElementById('navUsersSection').style.display = 'none';
+            }
+            renderAll(); 
+        }
+
+        /* === إدارة المستخدمين === */
+        let allUsers = [];
+        async function fetchUsers() {
+            if(currentRole !== 'admin') return;
+            try {
+                allUsers = await ipcRenderer.invoke('get-users');
+                renderUsersTable();
+            } catch(e) {
+                showToast('خطأ في جلب المستخدمين', 'error');
+            }
+        }
+        
+        function renderUsersTable() {
+            const tb = document.getElementById('usersTableBody');
+            if(!allUsers || allUsers.length === 0) {
+                tb.innerHTML = '<tr><td colspan="4" style="text-align:center;">لا يوجد مستخدمين</td></tr>';
+                return;
+            }
+            tb.innerHTML = allUsers.map(u => {
+                const roleLabel = ROLE_PERM[u.role] ? ROLE_PERM[u.role].label : u.role;
+                return `<tr>
+                    <td>${u.username}</td>
+                    <td>${u.name || '-'}</td>
+                    <td><span class="badge badge-approved">${roleLabel}</span></td>
+                    <td>
+                        <button class="btn btn-sm btn-primary" onclick="editUser(${u.id})"><i class="fas fa-edit"></i> تعديل</button>
+                        ${u.username !== 'admin' ? `<button class="btn btn-sm btn-danger" onclick="deleteUser(${u.id})"><i class="fas fa-trash"></i> حذف</button>` : ''}
+                    </td>
+                </tr>`;
+            }).join('');
+        }
+        
+        function openUserModal() {
+            document.getElementById('userModalTitle').innerHTML = '<i class="fas fa-user-plus" style="color:var(--blue-500);margin-left:8px;"></i>إضافة مستخدم جديد';
+            document.getElementById('editUserId').value = '';
+            document.getElementById('u_username').value = '';
+            document.getElementById('u_username').disabled = false;
+            document.getElementById('u_name').value = '';
+            document.getElementById('u_password').value = '';
+            document.getElementById('u_password').required = true;
+            document.getElementById('u_role').value = 'employee';
+            document.getElementById('userModal').classList.add('active');
+        }
+        
+        function editUser(id) {
+            const u = allUsers.find(x => x.id === id);
+            if(!u) return;
+            document.getElementById('userModalTitle').innerHTML = '<i class="fas fa-user-edit" style="color:var(--orange-500);margin-left:8px;"></i>تعديل مستخدم';
+            document.getElementById('editUserId').value = u.id;
+            document.getElementById('u_username').value = u.username;
+            document.getElementById('u_username').disabled = true;
+            document.getElementById('u_name').value = u.name || '';
+            document.getElementById('u_password').value = '';
+            document.getElementById('u_password').required = false;
+            document.getElementById('u_role').value = u.role;
+            document.getElementById('userModal').classList.add('active');
+        }
+        
+        async function submitUser() {
+            const editUserId = document.getElementById('editUserId').value;
+            const username = document.getElementById('u_username').value.trim();
+            const name = document.getElementById('u_name').value.trim();
+            const password = document.getElementById('u_password').value;
+            const role = document.getElementById('u_role').value;
+            
+            if(!username || !name || (!editUserId && !password)) {
+                showToast('الرجاء ملء كافة الحقول', 'error');
+                return;
+            }
+            
+            const userData = { username, name, role };
+            if(password) userData.password = password;
+            if(editUserId) userData.id = parseInt(editUserId);
+            
+            try {
+                let res;
+                if(editUserId) {
+                    // index.js handle 'edit-user' replaces the object or updates it. We need to preserve original password if not provided.
+                    if (!password) {
+                        const existingUser = allUsers.find(u => u.id === parseInt(editUserId));
+                        userData.password = existingUser.password;
+                    }
+                    res = await ipcRenderer.invoke('edit-user', userData);
+                } else {
+                    res = await ipcRenderer.invoke('add-user', userData);
+                }
+                
+                if(res && res.success) {
+                    showToast('تم الحفظ بنجاح', 'success');
+                    closeModal('userModal');
+                    fetchUsers();
+                } else {
+                    showToast('حدث خطأ أثناء الحفظ', 'error');
+                }
+            } catch(e) {
+                showToast('خطأ في الاتصال', 'error');
+            }
+        }
+        
+        async function deleteUser(id) {
+            if(!confirm('هل أنت متأكد من حذف هذا المستخدم؟')) return;
+            try {
+                const res = await ipcRenderer.invoke('delete-user', id);
+                if(res && res.success) {
+                    showToast('تم الحذف بنجاح', 'success');
+                    fetchUsers();
+                } else {
+                    showToast('حدث خطأ أثناء الحذف', 'error');
+                }
+            } catch(e) {
+                showToast('خطأ في الاتصال', 'error');
+            }
+        }
+
+        /* === إدارة المشاريع === */
+        let allProjects = [];
+        async function fetchProjects() {
+            try {
+                allProjects = await ipcRenderer.invoke('get-projects');
+                PROJECT_NAMES = {};
+                allProjects.forEach(p => { PROJECT_NAMES[p.id] = p.name; });
+                updateProjectDropdown();
+                if(currentRole === 'admin') renderProjectsTable();
+            } catch(e) {
+                console.error('خطأ في جلب المشاريع', e);
+            }
+        }
+        
+        function updateProjectDropdown() {
+            const prProject = document.getElementById('prProject');
+            if(!prProject) return;
+            prProject.innerHTML = allProjects.map(p => `<option value="${p.id}">${p.name}</option>`).join('');
+        }
+
+        function renderProjectsTable() {
+            const tb = document.getElementById('projectsTableBody');
+            if(!tb) return;
+            if(!allProjects || allProjects.length === 0) {
+                tb.innerHTML = '<tr><td colspan="3" style="text-align:center;">لا يوجد مشاريع</td></tr>';
+                return;
+            }
+            tb.innerHTML = allProjects.map(p => {
+                return `<tr>
+                    <td><span class="badge badge-pending" style="font-family:monospace;">${p.id}</span></td>
+                    <td style="font-weight:600;">${p.name}</td>
+                    <td>
+                        <button class="btn btn-sm btn-primary" onclick="editProject('${p.id}')"><i class="fas fa-edit"></i> تعديل</button>
+                        <button class="btn btn-sm btn-danger" onclick="deleteProject('${p.id}')"><i class="fas fa-trash"></i> حذف</button>
+                    </td>
+                </tr>`;
+            }).join('');
+        }
+
+        function openProjectModal() {
+            document.getElementById('projectModalTitle').innerHTML = '<i class="fas fa-project-diagram" style="color:var(--blue-500);margin-left:8px;"></i>إضافة مشروع جديد';
+            document.getElementById('editProjectId').value = '';
+            document.getElementById('p_id').value = '';
+            document.getElementById('p_id').disabled = false;
+            document.getElementById('p_name').value = '';
+            document.getElementById('projectModal').classList.add('active');
+        }
+
+        function editProject(id) {
+            const p = allProjects.find(x => x.id === id);
+            if(!p) return;
+            document.getElementById('projectModalTitle').innerHTML = '<i class="fas fa-edit" style="color:var(--orange-500);margin-left:8px;"></i>تعديل مشروع';
+            document.getElementById('editProjectId').value = p.id;
+            document.getElementById('p_id').value = p.id;
+            document.getElementById('p_id').disabled = true;
+            document.getElementById('p_name').value = p.name;
+            document.getElementById('projectModal').classList.add('active');
+        }
+
+        async function submitProject() {
+            const editProjectId = document.getElementById('editProjectId').value;
+            const id = document.getElementById('p_id').value.trim();
+            const name = document.getElementById('p_name').value.trim();
+            
+            if(!name) {
+                showToast('الرجاء كتابة اسم المشروع', 'error');
+                return;
+            }
+            
+            const projectData = { name };
+            if(id) projectData.id = id;
+            if(editProjectId) projectData.id = editProjectId;
+            
+            try {
+                let res;
+                if(editProjectId) {
+                    res = await ipcRenderer.invoke('edit-project', projectData);
+                } else {
+                    res = await ipcRenderer.invoke('add-project', projectData);
+                }
+                
+                if(res && res.success) {
+                    showToast('تم الحفظ بنجاح', 'success');
+                    closeModal('projectModal');
+                    fetchProjects();
+                } else {
+                    showToast('حدث خطأ أثناء الحفظ', 'error');
+                }
+            } catch(e) {
+                showToast('خطأ في الاتصال', 'error');
+            }
+        }
+
+        async function deleteProject(id) {
+            if(!confirm('هل أنت متأكد من حذف هذا المشروع؟ سيتأثر عرض التقارير السابقة إن حذفت مشروعاً مرتبطاً بها!')) return;
+            try {
+                const res = await ipcRenderer.invoke('delete-project', id);
+                if(res && res.success) {
+                    showToast('تم الحذف بنجاح', 'success');
+                    fetchProjects();
+                } else {
+                    showToast('حدث خطأ أثناء الحذف', 'error');
+                }
+            } catch(e) {
+                showToast('خطأ في الاتصال', 'error');
+            }
+        }
+
+        /* === إدارة المصروفات الإدارية === */
+        let allAdminCats = [];
+        async function fetchAdminCats() {
+            try {
+                allAdminCats = await ipcRenderer.invoke('get-admin-cats');
+                ADMIN_CATEGORIES = {};
+                allAdminCats.forEach(c => { ADMIN_CATEGORIES[c.id] = c.name; });
+                updateAdminCatDropdown();
+                if(currentRole === 'admin') renderAdminCatsTable();
+            } catch(e) {
+                console.error('خطأ في جلب الفئات', e);
+            }
+        }
+        
+        function updateAdminCatDropdown() {
+            const prAdminCategory = document.getElementById('prAdminCategory');
+            if(!prAdminCategory) return;
+            prAdminCategory.innerHTML = allAdminCats.map(c => `<option value="${c.id}">${c.name}</option>`).join('');
+        }
+
+        function renderAdminCatsTable() {
+            const tb = document.getElementById('adminCatsTableBody');
+            if(!tb) return;
+            if(!allAdminCats || allAdminCats.length === 0) {
+                tb.innerHTML = '<tr><td colspan="3" style="text-align:center;">لا يوجد فئات إدارية</td></tr>';
+                return;
+            }
+            tb.innerHTML = allAdminCats.map(c => {
+                return `<tr>
+                    <td><span class="badge badge-pending" style="font-family:monospace;">${c.id}</span></td>
+                    <td style="font-weight:600;">${c.name}</td>
+                    <td>
+                        <button class="btn btn-sm btn-primary" onclick="editAdminCat('${c.id}')"><i class="fas fa-edit"></i> تعديل</button>
+                        <button class="btn btn-sm btn-danger" onclick="deleteAdminCat('${c.id}')"><i class="fas fa-trash"></i> حذف</button>
+                    </td>
+                </tr>`;
+            }).join('');
+        }
+
+        function openAdminCatModal() { // Reset type for admin cats
+            document.getElementById('adminCatModalTitle').innerHTML = '<i class="fas fa-tags" style="color:var(--blue-500);margin-left:8px;"></i>إضافة فئة إدارية جديدة';
+            document.getElementById('editAdminCatId').value = '';
+            document.getElementById('ac_id').value = '';
+            document.getElementById('ac_id').disabled = false;
+            document.getElementById('ac_name').value = '';
+            document.getElementById('adminCatForm').dataset.type = 'admin';
+            document.getElementById('adminCatModal').classList.add('active');
+        }
+
+        function editAdminCat(id) {
+            const c = allAdminCats.find(x => x.id === id);
+            if(!c) return;
+            document.getElementById('adminCatModalTitle').innerHTML = '<i class="fas fa-edit" style="color:var(--orange-500);margin-left:8px;"></i>تعديل فئة إدارية';
+            document.getElementById('editAdminCatId').value = c.id;
+            document.getElementById('ac_id').value = c.id;
+            document.getElementById('ac_id').disabled = true;
+            document.getElementById('ac_name').value = c.name;
+            document.getElementById('adminCatForm').dataset.type = 'admin';
+            document.getElementById('adminCatModal').classList.add('active');
+        }
+
+        async function deleteAdminCat(id) {
+            if(!confirm('هل أنت متأكد من حذف هذه الفئة؟ سيتأثر عرض التقارير السابقة إن حذفت فئة مرتبطة بها!')) return;
+            try {
+                const res = await ipcRenderer.invoke('delete-admin-cat', id);
+                if(res && res.success) {
+                    showToast('تم الحذف بنجاح', 'success');
+                    fetchAdminCats();
+                } else {
+                    showToast('حدث خطأ أثناء الحذف', 'error');
+                }
+            } catch(e) {
+                showToast('خطأ في الاتصال', 'error');
+            }
+        }
+
+        /* === إدارة الجهات المانحة === */
+        let allDonors = [];
+        async function fetchDonors() {
+            try {
+                allDonors = await ipcRenderer.invoke('get-donors');
+                DONOR_NAMES = {};
+                allDonors.forEach(d => { DONOR_NAMES[d.id] = d.name; });
+                updateDonorDropdown();
+                if(currentRole === 'admin') renderDonorsTable();
+            } catch(e) {
+                console.error('خطأ في جلب المانحين', e);
+            }
+        }
+        
+        function updateDonorDropdown() {
+            const prDonor = document.getElementById('prDonor');
+            if(!prDonor) return;
+            prDonor.innerHTML = allDonors.map(d => `<option value="${d.id}">${d.name}</option>`).join('');
+        }
+
+        function renderDonorsTable() {
+            const tb = document.getElementById('donorsTableBody');
+            if(!tb) return;
+            if(!allDonors || allDonors.length === 0) {
+                tb.innerHTML = '<tr><td colspan="3" style="text-align:center;">لا يوجد مانحين</td></tr>';
+                return;
+            }
+            tb.innerHTML = allDonors.map(d => {
+                return `<tr>
+                    <td><span class="badge badge-pending" style="font-family:monospace;">${d.id}</span></td>
+                    <td style="font-weight:600;">${d.name}</td>
+                    <td>
+                        <button class="btn btn-sm btn-primary" onclick="editDonor('${d.id}')"><i class="fas fa-edit"></i> تعديل</button>
+                        <button class="btn btn-sm btn-danger" onclick="deleteDonor('${d.id}')"><i class="fas fa-trash"></i> حذف</button>
+                    </td>
+                </tr>`;
+            }).join('');
+        }
+
+        function openDonorModal() {
+            document.getElementById('adminCatModalTitle').innerHTML = '<i class="fas fa-hand-holding-heart" style="color:var(--blue-500);margin-left:8px;"></i>إضافة جهة مانحة جديدة';
+            document.getElementById('editAdminCatId').value = '';
+            document.getElementById('ac_id').value = '';
+            document.getElementById('ac_id').disabled = false;
+            document.getElementById('ac_name').value = '';
+            document.getElementById('adminCatForm').dataset.type = 'donor';
+            document.getElementById('adminCatModal').classList.add('active');
+        }
+
+        function editDonor(id) {
+            const d = allDonors.find(x => x.id === id);
+            if(!d) return;
+            document.getElementById('adminCatModalTitle').innerHTML = '<i class="fas fa-edit" style="color:var(--orange-500);margin-left:8px;"></i>تعديل جهة مانحة';
+            document.getElementById('editAdminCatId').value = d.id;
+            document.getElementById('ac_id').value = d.id;
+            document.getElementById('ac_id').disabled = true;
+            document.getElementById('ac_name').value = d.name;
+            document.getElementById('adminCatForm').dataset.type = 'donor';
+            document.getElementById('adminCatModal').classList.add('active');
+        }
+
+        async function submitAdminCat() { // This handles both admin cats and donors via dataset.type
+            const isDonor = document.getElementById('adminCatForm').dataset.type === 'donor';
+            const editId = document.getElementById('editAdminCatId').value;
+            const id = document.getElementById('ac_id').value.trim();
+            const name = document.getElementById('ac_name').value.trim();
+            
+            if(!name) {
+                showToast('الرجاء كتابة الاسم', 'error');
+                return;
+            }
+            
+            const data = { name };
+            if(id) data.id = id;
+            if(editId) data.id = editId;
+            
+            try {
+                let res;
+                if(isDonor) {
+                    if(editId) res = await ipcRenderer.invoke('edit-donor', data);
+                    else res = await ipcRenderer.invoke('add-donor', data);
+                } else {
+                    if(editId) res = await ipcRenderer.invoke('edit-admin-cat', data);
+                    else res = await ipcRenderer.invoke('add-admin-cat', data);
+                }
+                
+                if(res && res.success) {
+                    showToast('تم الحفظ بنجاح', 'success');
+                    closeModal('adminCatModal');
+                    if(isDonor) fetchDonors(); else fetchAdminCats();
+                } else {
+                    showToast('حدث خطأ أثناء الحفظ', 'error');
+                }
+            } catch(e) {
+                showToast('خطأ في الاتصال', 'error');
+            }
+        }
+
+        async function deleteDonor(id) {
+            if(!confirm('هل أنت متأكد من حذف هذه الجهة المانحة؟')) return;
+            try {
+                const res = await ipcRenderer.invoke('delete-donor', id);
+                if(res && res.success) {
+                    showToast('تم الحذف بنجاح', 'success');
+                    fetchDonors();
+                } else {
+                    showToast('حدث خطأ أثناء الحذف', 'error');
+                }
+            } catch(e) {
+                showToast('خطأ في الاتصال', 'error');
+            }
+        }
+
+        /* === التنقل === */
+        function navigateTo(p) { document.querySelectorAll('.page').forEach(x => x.classList.remove('active')); document.getElementById('page-' + p).classList.add('active'); document.querySelectorAll('.nav-item').forEach(i => i.classList.toggle('active', i.dataset.page === p)); const t = { 'dashboard': 'لوحة المعلومات', 'purchase-requests': 'إدارة طلبات الشراء', 'payment-vouchers': 'أوامر الصرف', 'payment-completion': 'اكتمال الدفع', 'accounts': 'الأرصدة والحسابات', 'journal': 'دفتر اليومية العامة', 'reports': 'التقارير والسندات', 'users': 'إدارة المستخدمين', 'projects': 'إدارة المشاريع', 'admin-cats': 'إدارة المصروفات الإدارية', 'donors': 'الجهات المانحة' }; document.getElementById('pageTitle').textContent = t[p] || ''; renderAll(); if(p === 'users') fetchUsers(); if(p === 'projects') fetchProjects(); if(p === 'admin-cats') fetchAdminCats(); if(p === 'donors') fetchDonors(); }
+
+        /* === المودال === */
+        function openModal(id) { document.getElementById(id).classList.add('active'); const d = new Date().toISOString().split('T')[0]; const f = document.getElementById(id === 'prModal' ? 'prDate' : 'pvDate'); if (f) f.value = d; }
+        function closeModal(id) { document.getElementById(id).classList.remove('active'); }
+        document.querySelectorAll('.modal-overlay').forEach(o => { o.addEventListener('click', function (e) { if (e.target === this) this.classList.remove('active'); }); });
+
+        /* === Toast === */
+        function showToast(m, t = 'info') { const c = document.getElementById('toastContainer'); const i = { success: 'fa-check-circle', error: 'fa-times-circle', warning: 'fa-exclamation-circle', info: 'fa-info-circle' }; const el = document.createElement('div'); el.className = 'toast ' + t; el.innerHTML = `<i class="fas ${i[t]}"></i><span>${m}</span>`; c.appendChild(el); setTimeout(() => el.remove(), 3500); }
+
+        /* === طلبات الشراء === */
+        function toggleProjectFields() { const t = document.getElementById('prItemType').value; document.getElementById('adminCategoryGroup').style.display = t === 'admin' ? '' : 'none'; document.getElementById('projectFieldsGroup').style.display = t === 'project' ? '' : 'none'; }
+        function submitPurchaseRequest() { const type = document.getElementById('prItemType').value, date = document.getElementById('prDate').value, amount = parseFloat(document.getElementById('prAmount').value), desc = document.getElementById('prDescription').value.trim(); if (!date || !amount || amount <= 0 || !desc) { showToast('يرجى ملء جميع الحقول المطلوبة', 'error'); return; } DB.counters.pr++; const pr = { id: DB.counters.pr, number: `PR-${String(DB.counters.pr).padStart(4, '0')}`, date, itemType: type, adminCategory: type === 'admin' ? document.getElementById('prAdminCategory').value : null, project: type === 'project' ? document.getElementById('prProject').value : null, donor: type === 'project' ? document.getElementById('prDonor').value : null, description: desc, amount, status: 'pending', createdAt: new Date().toISOString() }; DB.purchaseRequests.push(pr); saveDB(); document.getElementById('prDescription').value = ''; document.getElementById('prAmount').value = ''; closeModal('prModal'); showToast(`تم إنشاء ${pr.number} بنجاح`, 'success'); renderAll(); }
+        function approvePR(id) { if (!hasPermission('canApprovePR')) { showToast('ليس لديك صلاحية الاعتماد', 'error'); return; } const pr = DB.purchaseRequests.find(p => p.id === id); if (pr) { pr.status = 'approved'; saveDB(); showToast(`تم اعتماد ${pr.number}`, 'success'); renderAll(); } }
+        function rejectPR(id) { if (!hasPermission('canApprovePR')) { showToast('ليس لديك صلاحية الرفض', 'error'); return; } const pr = DB.purchaseRequests.find(p => p.id === id); if (pr) { pr.status = 'rejected'; saveDB(); showToast(`تم رفض ${pr.number}`, 'warning'); renderAll(); } }
+
+        /* === أوامر الصرف === */
+        function fillPVFromPR() { const id = parseInt(document.getElementById('pvLinkedPR').value); if (!id) return; const pr = DB.purchaseRequests.find(p => p.id === id); if (pr) { document.getElementById('pvAmount').value = pr.amount; document.getElementById('pvNotes').value = `مرتبط بـ ${pr.number}: ${pr.description}`; } }
+        function updatePVSource() { const m = document.getElementById('pvPayMethod').value; const s = { cash: 'الخزينة (نقداً)', bank: 'البنك السوداني (تحويل)', cheque: 'البنك السوداني (شيك)' }; document.getElementById('pvSource').value = s[m] || ''; }
+        function submitPaymentVoucher() { const prId = parseInt(document.getElementById('pvLinkedPR').value), date = document.getElementById('pvDate').value, method = document.getElementById('pvPayMethod').value, amount = parseFloat(document.getElementById('pvAmount').value), notes = document.getElementById('pvNotes').value.trim(); if (!prId || !date || !amount || amount <= 0) { showToast('يرجى ملء جميع الحقول', 'error'); return; } const pr = DB.purchaseRequests.find(p => p.id === prId); if (!pr || pr.status !== 'approved') { showToast('اختر طلب شراء معتمد فقط', 'error'); return; } const src = method === 'cash' ? 'cash' : 'bank'; if (DB.accounts[src].balance < amount) { showToast(`رصيد غير كافٍ في ${DB.accounts[src].name}`, 'error'); return; } DB.counters.pv++; const pv = { id: DB.counters.pv, number: `PV-${String(DB.counters.pv).padStart(4, '0')}`, date, prId: pr.id, prNumber: pr.number, itemType: pr.itemType, adminCategory: pr.adminCategory, project: pr.project, donor: pr.donor, description: pr.description, payMethod: method, sourceAccount: src, amount, notes, status: 'approved', createdAt: new Date().toISOString() }; DB.paymentVouchers.push(pv); pr.status = 'voucher_created'; saveDB(); document.getElementById('pvLinkedPR').value = ''; document.getElementById('pvAmount').value = ''; document.getElementById('pvNotes').value = ''; closeModal('pvModal'); showToast(`تم إنشاء ${pv.number} بنجاح`, 'success'); renderAll(); }
+
+        /* === اكتمال الدفع === */
+        function completePayment(pvId) { if (!hasPermission('canCompletePayment')) { showToast('ليس لديك صلاحية تنفيذ الدفع', 'error'); return; } const pv = DB.paymentVouchers.find(v => v.id === pvId); if (!pv || pv.status !== 'approved') return; if (DB.accounts[pv.sourceAccount].balance < pv.amount) { showToast('رصيد غير كافٍ', 'error'); return; } let debitAcc; if (pv.itemType === 'admin') { debitAcc = 'admin_' + pv.adminCategory; if (!DB.accounts[debitAcc]) { DB.accounts[debitAcc] = { name: ADMIN_CATEGORIES[pv.adminCategory] || pv.adminCategory, balance: 0 }; } DB.accounts[debitAcc].balance += pv.amount; DB.accounts.admin_expenses.balance += pv.amount; } else { debitAcc = 'project_expenses'; DB.accounts[debitAcc].balance += pv.amount; } DB.accounts[pv.sourceAccount].balance -= pv.amount; DB.counters.je++; const je = { id: DB.counters.je, number: `JE-${String(DB.counters.je).padStart(4, '0')}`, date: new Date().toISOString().split('T')[0], description: `صرف - ${pv.description} (${pv.number})`, debitAccount: debitAcc, debitAccountName: DB.accounts[debitAcc].name, debitAmount: pv.amount, creditAccount: pv.sourceAccount, creditAccountName: DB.accounts[pv.sourceAccount].name, creditAmount: pv.amount, pvNumber: pv.number, createdAt: new Date().toISOString() }; DB.journalEntries.push(je); pv.status = 'paid'; pv.paidAt = new Date().toISOString(); const pr = DB.purchaseRequests.find(p => p.id === pv.prId); if (pr) pr.status = 'paid'; saveDB(); showToast(`تم تنفيذ ${pv.number} - خصم ${formatSDG(pv.amount)} ج.س من ${DB.accounts[pv.sourceAccount].name}`, 'success'); showJournalDetail(je); renderAll(); }
+        function showJournalDetail(je) { document.getElementById('journalDetailBody').innerHTML = `<div style="text-align:center;margin-bottom:16px;"><span style="background:var(--blue-100);color:var(--blue-600);padding:4px 14px;border-radius:20px;font-size:12px;font-weight:700;">${je.number}</span><span style="color:var(--gray-400);margin:0 8px;">|</span><span style="font-size:12px;color:var(--gray-500);">${je.date}</span></div><p style="font-size:14px;font-weight:600;color:var(--gray-800);margin-bottom:16px;text-align:center;">${je.description}</p><div class="journal-entry"><div class="journal-side debit"><h5><i class="fas fa-arrow-up"></i> مدين (Debit)</h5><p style="font-size:13px;color:var(--gray-700);margin-bottom:4px;">${je.debitAccountName}</p><p style="font-size:18px;font-weight:800;color:var(--orange-600);font-family:'Noto Kufi Arabic';">${formatSDG(je.debitAmount)} ج.س</p></div><div class="journal-side credit"><h5><i class="fas fa-arrow-down"></i> دائن (Credit)</h5><p style="font-size:13px;color:var(--gray-700);margin-bottom:4px;">${je.creditAccountName}</p><p style="font-size:18px;font-weight:800;color:var(--blue-600);font-family:'Noto Kufi Arabic';">${formatSDG(je.creditAmount)} ج.س</p></div></div><div style="text-align:center;margin-top:12px;"><i class="fas fa-balance-scale" style="color:var(--green-500);font-size:18px;"></i><p style="font-size:12px;color:var(--green-600);font-weight:600;margin-top:4px;">القيد متوازن - المدين = الدائن</p></div>`; openModal('journalModal'); }
+
+        /* === التقارير === */
+        function switchReportTab(tab, btn) { document.querySelectorAll('.report-section').forEach(s => s.style.display = 'none'); document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active')); document.getElementById('report-' + tab).style.display = ''; if (btn) btn.classList.add('active'); if (tab === 'budget') renderBudgetReport(); if (tab === 'voucher') populateVoucherSelect(); if (tab === 'pr') populatePRReportSelect(); }
+
+        function renderBudgetReport() {
+            const cash = DB.accounts.cash.balance, bank = DB.accounts.bank.balance, currentRes = cash + bank, totalAdmin = DB.accounts.admin_expenses.balance, totalProj = DB.accounts.project_expenses.balance, totalExp = totalAdmin + totalProj, totalRes = currentRes + totalExp, rem = currentRes;
+            const dateStr = new Date().toLocaleDateString('ar-SD', { year: 'numeric', month: 'long', day: 'numeric' }).replace(/[٠-٩]/g, d => '٠١٢٣٤٥٦٧٨٩'.indexOf(d));
+            let rn = 1, rows = '';
+            rows += `<tr style="background:var(--blue-50);"><td colspan="3" style="font-weight:700;color:var(--blue-700);">الموارد المتاحة حالياً</td></tr>`;
+            rows += `<tr><td>${rn++}</td><td>الخزينة (نقداً)</td><td style="text-align:center;font-family:'Noto Kufi Arabic';font-weight:700;">${formatSDG(cash)}</td></tr>`;
+            rows += `<tr><td>${rn++}</td><td>البنك السوداني</td><td style="text-align:center;font-family:'Noto Kufi Arabic';font-weight:700;">${formatSDG(bank)}</td></tr>`;
+            rows += `<tr class="report-total-row"><td></td><td>إجمالي المتاح حالياً</td><td style="text-align:center;font-family:'Noto Kufi Arabic';">${formatSDG(currentRes)}</td></tr>`;
+            rows += `<tr style="background:var(--orange-50);"><td colspan="3" style="font-weight:700;color:var(--orange-700);">المنصرفات الإدارية</td></tr>`;
+            for (const [k, l] of Object.entries(ADMIN_CATEGORIES)) { const ak = k === 'other_admin' ? 'admin_other' : 'admin_' + k, v = DB.accounts[ak] ? DB.accounts[ak].balance : 0; if (v > 0) rows += `<tr><td>${rn++}</td><td>${l}</td><td style="text-align:center;font-family:'Noto Kufi Arabic';font-weight:700;color:var(--red-500);">(${formatSDG(v)})</td></tr>`; }
+            rows += `<tr class="report-total-row"><td></td><td>إجمالي المنصرفات الإدارية</td><td style="text-align:center;font-family:'Noto Kufi Arabic';color:var(--red-500);">(${formatSDG(totalAdmin)})</td></tr>`;
+            rows += `<tr style="background:var(--orange-50);"><td colspan="3" style="font-weight:700;color:var(--orange-700);">مصروفات المشاريع</td></tr>`;
+            if (totalProj > 0) rows += `<tr><td>${rn++}</td><td>إجمالي مصروفات المشاريع</td><td style="text-align:center;font-family:'Noto Kufi Arabic';font-weight:700;color:var(--red-500);">(${formatSDG(totalProj)})</td></tr>`;
+            else rows += `<tr><td>${rn++}</td><td colspan="2" style="text-align:center;color:var(--gray-400);">لا توجد مصروفات</td></tr>`;
+            rows += `<tr class="report-total-row"><td></td><td>إجمالي المصروفات الكلية</td><td style="text-align:center;font-family:'Noto Kufi Arabic';color:var(--red-500);">(${formatSDG(totalExp)})</td></tr>`;
+
+            document.getElementById('budgetReport').innerHTML = `
+        <div class="report-header-section">
+            <div class="report-logo-wrapper"><img src="${LOGO_URL}" alt="شعار رواح" class="logo-img-colored"></div>
+            <div class="report-org-name">منظمة رواح</div>
+            <div class="report-doc-title">تقرير الميزانية الكلية</div>
+            <p style="font-size:12px;color:var(--gray-500);margin-top:6px;">تاريخ التقرير: ${dateStr}</p>
+        </div>
+        <table class="report-table"><thead><tr><th style="width:40px;">م</th><th>البند</th><th style="width:160px;">المبلغ (ج.س)</th></tr></thead><tbody>${rows}</tbody></table>
+        <div class="report-amount-words"><i class="fas fa-pen-fancy" style="margin-left:8px;color:var(--blue-400);"></i>المبلغ الإجمالي للمصروفات: ${amountInWords(totalExp)}</div>
+        <div class="journal-entry"><div class="journal-side debit"><h5><i class="fas fa-arrow-up"></i> إجمالي الميزانية الكلية</h5><p style="font-size:20px;font-weight:800;color:var(--orange-600);font-family:'Noto Kufi Arabic';">${formatSDG(totalRes)} ج.س</p></div><div class="journal-side credit"><h5><i class="fas fa-arrow-down"></i> إجمالي المصروفات</h5><p style="font-size:20px;font-weight:800;color:var(--blue-600);font-family:'Noto Kufi Arabic';">${formatSDG(totalExp)} ج.س</p></div></div>
+        <div style="text-align:center;margin:20px 0;padding:16px;background:var(--green-100);border-radius:var(--radius-sm);"><span style="font-size:14px;color:#15803D;font-weight:700;">الرصيد المتبقي (المتاح للإنفاق): </span><span style="font-size:22px;font-weight:900;color:#15803D;font-family:'Noto Kufi Arabic';">${formatSDG(rem)} ج.س</span></div>
+        <div class="report-signatures"><div class="sig-box"><span>المدير المالي</span>...........................</div><div class="sig-box"><span>المدير العام</span>...........................</div><div class="sig-box"><span>المحاسب</span>...........................</div></div>`;
+        }
+
+        function populateVoucherSelect() { const s = document.getElementById('voucherSelect'), ps = DB.paymentVouchers.filter(v => v.status === 'paid'); s.innerHTML = '<option value="">-- اختر --</option>' + ps.map(v => `<option value="${v.id}">${v.number} - ${formatSDG(v.amount)} ج.س</option>`).join(''); }
+        function generateVoucherReport() { const id = parseInt(document.getElementById('voucherSelect').value), c = document.getElementById('voucherReport'); if (!id) { c.innerHTML = '<div style="text-align:center;padding:40px;color:var(--gray-400);"><p>اختر أمر صرف</p></div>'; return; } const pv = DB.paymentVouchers.find(v => v.id === id); if (!pv) return; const itL = pv.itemType === 'admin' ? 'إداري' : 'مشروع', catL = pv.itemType === 'admin' ? (ADMIN_CATEGORIES[pv.adminCategory] || '') : (PROJECT_NAMES[pv.project] || ''), donL = pv.donor ? (DONOR_NAMES[pv.donor] || '') : '', srcL = pv.sourceAccount === 'cash' ? 'الخزينة' : 'البنك السوداني'; c.innerHTML = `<div class="report-header-section"><div class="report-logo-wrapper"><img src="${LOGO_URL}" alt="شعار رواح" class="logo-img-colored"></div><div class="report-org-name">منظمة رواح</div><div class="report-doc-title">سند صرف</div></div><div style="display:flex;justify-content:space-between;margin-bottom:20px;"><div><strong>رقم السند:</strong> ${pv.number}</div><div><strong>التاريخ:</strong> ${pv.date}</div></div><table class="report-table"><tr><th style="width:35%;">البند</th><th>التفاصيل</th></tr><tr><td>رقم طلب الشراء</td><td>${pv.prNumber || '-'}</td></tr><tr><td>نوع البند</td><td>${itL}</td></tr><tr><td>التصنيف</td><td>${catL} ${donL ? '(' + donL + ')' : ''}</td></tr><tr><td>البيان</td><td>${pv.description}</td></tr><tr><td>طريقة الدفع</td><td>${PAY_METHODS[pv.payMethod]}</td></tr><tr><td>الحساب المصدر</td><td>${srcL}</td></tr><tr class="report-total-row"><td>المبلغ</td><td style="font-family:'Noto Kufi Arabic';font-size:16px;">${formatSDG(pv.amount)} ج.س</td></tr></table><div class="report-amount-words"><i class="fas fa-pen-fancy" style="margin-left:8px;color:var(--blue-400);"></i>${amountInWords(pv.amount)}</div>${pv.notes ? `<div style="background:var(--gray-50);padding:12px;border-radius:8px;font-size:12px;color:var(--gray-600);margin-top:12px;"><strong>ملاحظات:</strong> ${pv.notes}</div>` : ''}<div class="report-signatures"><div class="sig-box"><span>أعدّ بواسطة</span>...........................</div><div class="sig-box"><span>اعتمد بواسطة</span>...........................</div><div class="sig-box"><span>المستفيد</span>...........................</div></div>`; }
+        function populatePRReportSelect() { const s = document.getElementById('prReportSelect'); s.innerHTML = '<option value="">-- اختر --</option>' + DB.purchaseRequests.map(p => `<option value="${p.id}">${p.number} - ${formatSDG(p.amount)} ج.س</option>`).join(''); }
+        function generatePRReport() { const id = parseInt(document.getElementById('prReportSelect').value), c = document.getElementById('prReport'); if (!id) { c.innerHTML = '<div style="text-align:center;padding:40px;color:var(--gray-400);"><p>اختر طلب شراء</p></div>'; return; } const pr = DB.purchaseRequests.find(p => p.id === id); if (!pr) return; const st = STATUS_MAP[pr.status] || { label: '', class: '' }, itL = pr.itemType === 'admin' ? 'إداري' : 'مشروع', catL = pr.itemType === 'admin' ? (ADMIN_CATEGORIES[pr.adminCategory] || '') : (PROJECT_NAMES[pr.project] || ''), donL = pr.donor ? (DONOR_NAMES[pr.donor] || '') : ''; c.innerHTML = `<div class="report-header-section"><div class="report-logo-wrapper"><img src="${LOGO_URL}" alt="شعار رواح" class="logo-img-colored"></div><div class="report-org-name">منظمة رواح</div><div class="report-doc-title">طلب شراء</div></div><div style="display:flex;justify-content:space-between;margin-bottom:20px;"><div><strong>رقم الطلب:</strong> ${pr.number}</div><div><strong>التاريخ:</strong> ${pr.date}</div></div><table class="report-table"><tr><th style="width:35%;">البند</th><th>التفاصيل</th></tr><tr><td>نوع البند</td><td>${itL}</td></tr><tr><td>التصنيف</td><td>${catL}</td></tr>${donL ? `<tr><td>المانح</td><td>${donL}</td></tr>` : ''}<tr><td>البيان</td><td>${pr.description}</td></tr><tr class="report-total-row"><td>المبلغ التقديري</td><td style="font-family:'Noto Kufi Arabic';font-size:16px;">${formatSDG(pr.amount)} ج.س</td></tr></table><div class="report-amount-words"><i class="fas fa-pen-fancy" style="margin-left:8px;color:var(--blue-400);"></i>${amountInWords(pr.amount)}</div><div style="text-align:center;margin-top:16px;"><span class="badge ${st.class}" style="font-size:14px;padding:6px 20px;">${st.label}</span></div><div class="report-signatures"><div class="sig-box"><span>طالب الشراء</span>...........................</div><div class="sig-box"><span>المدير المباشر</span>...........................</div><div class="sig-box"><span>المدير المالي</span>...........................</div></div>`; }
+        if (typeof require !== 'undefined') {
+            const { ipcRenderer } = require('electron');
+            ipcRenderer.on('pdf-preview-ready', (event, pdfData) => {
+                if (window.currentPdfUrl) URL.revokeObjectURL(window.currentPdfUrl);
+                const blob = new Blob([pdfData], { type: 'application/pdf' });
+                window.currentPdfUrl = URL.createObjectURL(blob);
+                document.getElementById('pdfPreviewIframe').src = window.currentPdfUrl;
+                openModal('printPreviewModal');
+            });
+            ipcRenderer.on('pdf-preview-error', (event, err) => {
+                showToast('فشل في توليد المعاينة', 'error');
+            });
+        }
+
+        function printReport() {
+            if (typeof require !== 'undefined') {
+                const { ipcRenderer } = require('electron');
+                showToast('جاري تجهيز المعاينة...', 'success');
+                ipcRenderer.send('generate-pdf-preview');
+            } else {
+                window.print();
+            }
+        }
+
+        function executePrint() {
+            if (typeof require !== 'undefined') {
+                const { ipcRenderer } = require('electron');
+                ipcRenderer.send('print-report');
+            } else {
+                window.print();
+            }
+        }
+
+        /* === الرسوم البيانية === */
+        let expChartInst = null, monChartInst = null;
+        function renderCharts() {
+            const at = DB.accounts.admin_expenses.balance, pt = DB.accounts.project_expenses.balance;
+            if (expChartInst) expChartInst.destroy();
+            expChartInst = new Chart(document.getElementById('expenseChart').getContext('2d'), { type: 'doughnut', data: { labels: ['المنصرفات الإدارية', 'مصروفات المشاريع'], datasets: [{ data: [at || 0, pt || 0], backgroundColor: ['#F97316', '#2563EB'], borderWidth: 0, hoverOffset: 8 }] }, options: { responsive: true, maintainAspectRatio: false, cutout: '65%', plugins: { legend: { position: 'bottom', rtl: true, labels: { font: { family: 'Noto Sans Arabic', size: 12, weight: '600' }, padding: 16, usePointStyle: true, pointStyleWidth: 12 } }, tooltip: { rtl: true, callbacks: { label: c => c.label + ': ' + formatSDG(c.parsed) + ' ج.س' } } } } });
+            const months = [], mData = [], now = new Date();
+            for (let i = 5; i >= 0; i--) { const d = new Date(now.getFullYear(), now.getMonth() - i, 1); months.push(d.toLocaleDateString('ar-SD', { month: 'short' }).replace(/[٠-٩]/g, d => '٠١٢٣٤٥٦٧٨٩'.indexOf(d))); const ym = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`; mData.push(DB.journalEntries.filter(j => j.date && j.date.startsWith(ym)).reduce((s, j) => s + j.debitAmount, 0)); }
+            if (monChartInst) monChartInst.destroy();
+            monChartInst = new Chart(document.getElementById('monthlyChart').getContext('2d'), { type: 'bar', data: { labels: months, datasets: [{ label: 'المصروفات (ج.س)', data: mData, backgroundColor: function (ctx) { const c = ctx.chart, { ctx: x, chartArea: a } = c; if (!a) return '#F97316'; const g = x.createLinearGradient(0, a.bottom, 0, a.top); g.addColorStop(0, 'rgba(249,115,22,0.3)'); g.addColorStop(1, 'rgba(249,115,22,0.9)'); return g; }, borderRadius: 6, borderSkipped: false, barThickness: 32 }] }, options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false }, tooltip: { rtl: true, callbacks: { label: c => formatSDG(c.parsed.y) + ' ج.س' } } }, scales: { x: { grid: { display: false }, ticks: { font: { family: 'Noto Sans Arabic', size: 11 } } }, y: { grid: { color: 'rgba(0,0,0,0.05)' }, ticks: { font: { family: 'Noto Sans Arabic', size: 10 }, callback: v => v >= 1e6 ? (v / 1e6).toFixed(1) + 'م' : v >= 1e3 ? (v / 1e3).toFixed(0) + 'ألف' : v } } } } });
+        }
+
+        /* === العرض === */
+        function animateCounter(elId, target) { const el = document.getElementById(elId); if (!el) return; const start = parseFloat(el.textContent.replace(/,/g, '')) || 0; const dur = 800, st = performance.now(); function up(t) { const p = Math.min((t - st) / dur, 1), e = 1 - Math.pow(1 - p, 3); el.textContent = formatSDG(start + (target - start) * e); if (p < 1) requestAnimationFrame(up); } requestAnimationFrame(up); }
+
+        function renderAll() {
+            animateCounter('cashBalance', DB.accounts.cash.balance);
+            animateCounter('bankBalance', DB.accounts.bank.balance);
+            animateCounter('totalExpenses', DB.accounts.admin_expenses.balance + DB.accounts.project_expenses.balance);
+            animateCounter('totalLiquidity', DB.accounts.cash.balance + DB.accounts.bank.balance);
+            renderPRTable(); renderPVTable(); renderPCTable(); renderAccountsPage(); renderJournalTable(); renderRecentTables(); updateBadges(); renderCharts(); renderBudgetReport(); updatePVSource(); populateApprovedPRs();
+        }
+
+        function renderPRTable() { const tb = document.getElementById('prTableBody'); if (!DB.purchaseRequests.length) { tb.innerHTML = '<tr><td colspan="8"><div class="empty-state"><i class="fas fa-inbox"></i><p>لا توجد طلبات شراء.</p></div></td></tr>'; return; } tb.innerHTML = DB.purchaseRequests.slice().reverse().map(pr => { const st = STATUS_MAP[pr.status] || { label: '', class: '' }, itL = pr.itemType === 'admin' ? 'إداري' : 'مشروع', det = pr.itemType === 'admin' ? (ADMIN_CATEGORIES[pr.adminCategory] || '') : ((PROJECT_NAMES[pr.project] || '') + (pr.donor ? ' - ' + (DONOR_NAMES[pr.donor] || '') : '')); let act = ''; if (pr.status === 'pending' && hasPermission('canApprovePR')) act = `<button class="btn btn-success btn-sm" onclick="approvePR(${pr.id})"><i class="fas fa-check"></i> اعتماد</button> <button class="btn btn-danger btn-sm" onclick="rejectPR(${pr.id})"><i class="fas fa-times"></i> رفض</button>`; else act = `<span class="badge ${st.class}">${st.label}</span>`; return `<tr><td style="font-weight:600;color:var(--blue-600);">${pr.number}</td><td>${pr.date}</td><td><span class="badge ${pr.itemType === 'admin' ? 'badge-approved' : 'badge-pending'}">${itL}</span></td><td style="max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${pr.description}</td><td style="font-size:12px;color:var(--gray-500);">${det}</td><td class="amount-cell">${formatSDG(pr.amount)}</td><td><span class="badge ${st.class}">${st.label}</span></td><td>${act}</td></tr>`; }).join(''); }
+
+        function renderPVTable() { const tb = document.getElementById('pvTableBody'); if (!DB.paymentVouchers.length) { tb.innerHTML = '<tr><td colspan="7"><div class="empty-state"><i class="fas fa-inbox"></i><p>لا توجد أوامر صرف.</p></div></td></tr>'; return; } tb.innerHTML = DB.paymentVouchers.slice().reverse().map(pv => { const st = STATUS_MAP[pv.status] || { label: '', class: '' }; let act = `<span class="badge ${st.class}">${st.label}</span>`; if (pv.status === 'approved' && hasPermission('canCompletePayment')) act = `<button class="btn btn-success btn-sm" onclick="completePayment(${pv.id})"><i class="fas fa-check-double"></i> تنفيذ الدفع</button>`; return `<tr><td style="font-weight:600;color:var(--orange-600);">${pv.number}</td><td>${pv.date}</td><td style="color:var(--blue-500);">${pv.prNumber}</td><td>${PAY_METHODS[pv.payMethod]}</td><td class="amount-cell">${formatSDG(pv.amount)}</td><td><span class="badge ${st.class}">${st.label}</span></td><td>${act}</td></tr>`; }).join(''); }
+
+        function renderPCTable() { const tb = document.getElementById('pcTableBody'), aps = DB.paymentVouchers.filter(v => v.status === 'approved'); if (!aps.length) { tb.innerHTML = '<tr><td colspan="7"><div class="empty-state"><i class="fas fa-inbox"></i><p>لا توجد أوامر معتمدة.</p></div></td></tr>'; return; } tb.innerHTML = aps.map(pv => { const srcL = pv.sourceAccount === 'cash' ? 'الخزينة' : 'البنك السوداني', avl = DB.accounts[pv.sourceAccount].balance, ok = avl >= pv.amount; return `<tr style="${!ok ? 'background:var(--red-50);' : ''}"><td style="font-weight:600;color:var(--orange-600);">${pv.number}</td><td>${pv.itemType === 'admin' ? (ADMIN_CATEGORIES[pv.adminCategory] || '') : (PROJECT_NAMES[pv.project] || '')}</td><td>${PAY_METHODS[pv.payMethod]}</td><td>${srcL}</td><td class="amount-cell">${formatSDG(pv.amount)}</td><td>${!ok ? '<span class="badge badge-rejected"><i class="fas fa-exclamation-triangle"></i> رصيد غير كافٍ</span>' : '<span class="badge badge-approved">جاهز للتنفيذ</span>'}</td><td><button class="btn btn-success btn-sm" onclick="completePayment(${pv.id})" ${!ok || !hasPermission('canCompletePayment') ? 'disabled' : ''}><i class="fas fa-check-double"></i> تأكيد الدفع</button></td></tr>`; }).join(''); }
+
+        function renderAccountsPage() {
+            document.getElementById('accCash').textContent = formatSDG(DB.accounts.cash.balance);
+            document.getElementById('accBank').textContent = formatSDG(DB.accounts.bank.balance);
+            document.getElementById('accAdmin').textContent = formatSDG(DB.accounts.admin_expenses.balance);
+            document.getElementById('accProject').textContent = formatSDG(DB.accounts.project_expenses.balance);
+            const at = DB.accounts.admin_expenses.balance; let ar = '';
+            for (const [k, l] of Object.entries(ADMIN_CATEGORIES)) { const ak = 'admin_' + k, v = DB.accounts[ak] ? DB.accounts[ak].balance : 0, pct = at > 0 ? ((v / at) * 100).toFixed(1) : '0.0'; ar += `<tr><td>${l}</td><td class="amount-cell">${formatSDG(v)}</td><td><div style="display:flex;align-items:center;gap:8px;"><div class="progress-bar" style="flex:1;"><div class="progress-fill orange" style="width:${pct}%;"></div></div><span style="font-size:11px;color:var(--gray-500);min-width:40px;">${pct}%</span></div></td></tr>`; }
+            document.getElementById('adminExpTable').innerHTML = ar || '<tr><td colspan="3" style="text-align:center;color:var(--gray-400);padding:20px;">لا توجد منصرفات</td></tr>';
+            const ppvs = DB.paymentVouchers.filter(v => v.status === 'paid' && v.itemType === 'project');
+            if (!ppvs.length) { document.getElementById('projExpTable').innerHTML = '<tr><td colspan="3" style="text-align:center;color:var(--gray-400);padding:20px;">لا توجد مصروفات</td></tr>'; } else { const g = {}; ppvs.forEach(pv => { const k = pv.project + '_' + pv.donor; if (!g[k]) g[k] = { project: pv.project, donor: pv.donor, total: 0 }; g[k].total += pv.amount; }); document.getElementById('projExpTable').innerHTML = Object.values(g).map(x => `<tr><td>${PROJECT_NAMES[x.project] || x.project}</td><td>${DONOR_NAMES[x.donor] || x.donor || '-'}</td><td class="amount-cell">${formatSDG(x.total)}</td></tr>`).join(''); }
+        }
+
+        function renderJournalTable() { const tb = document.getElementById('journalTableBody'); if (!DB.journalEntries.length) { tb.innerHTML = '<tr><td colspan="7"><div class="empty-state"><i class="fas fa-book-open"></i><p>لا توجد قيود.</p></div></td></tr>'; return; } tb.innerHTML = DB.journalEntries.slice().reverse().map(je => `<tr style="cursor:pointer;" onclick='showJournalDetail(${JSON.stringify(je).replace(/'/g, "&#39;")})'><td style="font-weight:600;color:var(--blue-600);">${je.number}</td><td>${je.date}</td><td style="max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${je.description}</td><td style="color:var(--orange-600);font-weight:500;">${je.debitAccountName}</td><td class="amount-cell" style="color:var(--orange-600);">${formatSDG(je.debitAmount)}</td><td style="color:var(--blue-600);font-weight:500;">${je.creditAccountName}</td><td class="amount-cell" style="color:var(--blue-600);">${formatSDG(je.creditAmount)}</td></tr>`).join(''); }
+
+        function renderRecentTables() {
+            const rprs = DB.purchaseRequests.slice(-5).reverse(), rpv = DB.paymentVouchers.slice(-5).reverse();
+            document.getElementById('recentPRTable').innerHTML = rprs.length ? rprs.map(pr => { const s = STATUS_MAP[pr.status] || { label: '', class: '' }; return `<tr><td style="font-weight:600;color:var(--blue-500);">${pr.number}</td><td>${pr.itemType === 'admin' ? 'إداري' : 'مشروع'}</td><td class="amount-cell">${formatSDG(pr.amount)}</td><td><span class="badge ${s.class}">${s.label}</span></td></tr>`; }).join('') : '<tr><td colspan="4" style="text-align:center;color:var(--gray-400);padding:16px;">لا توجد طلبات</td></tr>';
+            document.getElementById('recentPVTable').innerHTML = rpv.length ? rpv.map(pv => { const s = STATUS_MAP[pv.status] || { label: '', class: '' }; return `<tr><td style="font-weight:600;color:var(--orange-500);">${pv.number}</td><td>${PAY_METHODS[pv.payMethod]}</td><td class="amount-cell">${formatSDG(pv.amount)}</td><td><span class="badge ${s.class}">${s.label}</span></td></tr>`; }).join('') : '<tr><td colspan="4" style="text-align:center;color:var(--gray-400);padding:16px;">لا توجد أوامر</td></tr>';
+        }
+
+        function updateBadges() { const pp = DB.purchaseRequests.filter(p => p.status === 'pending').length, pv = DB.paymentVouchers.filter(v => v.status === 'approved').length; document.getElementById('prBadge').textContent = pp; document.getElementById('prBadge').style.display = pp ? '' : 'none'; document.getElementById('pvBadge').textContent = pv; document.getElementById('pvBadge').style.display = pv ? '' : 'none'; document.getElementById('pcBadge').textContent = pv; document.getElementById('pcBadge').style.display = pv ? '' : 'none'; }
+        function populateApprovedPRs() { const s = document.getElementById('pvLinkedPR'), a = DB.purchaseRequests.filter(p => p.status === 'approved'); s.innerHTML = '<option value="">-- اختر طلب شراء معتمد --</option>' + a.map(p => `<option value="${p.id}">${p.number} - ${p.description.substring(0, 40)}... (${formatSDG(p.amount)} ج.س)</option>`).join(''); }
+        function toggleSidebar() { document.getElementById('sidebar').classList.toggle('open'); }
+
+
+
+        /* === التهيئة === */
+        function initApp() {
+            if(loggedUser) {
+                document.getElementById('userName').textContent = loggedUser.name || loggedUser.username;
+                document.getElementById('userAvatar').textContent = (loggedUser.name || loggedUser.username).charAt(0);
+                document.querySelector('.role-selector').style.display = 'none';
+                changeRole(loggedUser.role);
+            } else {
+                changeRole('accountant');
+            }
+            document.getElementById('currentDate').textContent = new Date().toLocaleDateString('ar-SD', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' }).replace(/[٠-٩]/g, d => '٠١٢٣٤٥٦٧٨٩'.indexOf(d));
+            updatePVSource(); renderAll();
+            fetchProjects(); // جلب المشاريع ديناميكياً
+            fetchAdminCats(); // جلب الفئات الإدارية ديناميكياً
+            fetchDonors(); // جلب المانحين ديناميكياً
+        }
+        document.addEventListener('DOMContentLoaded', async () => {
+            await loadDB();
+            initApp();
+        });
+        function checkResponsive() { const t = document.getElementById('menuToggle'); if (window.innerWidth <= 768) t.style.display = ''; else { t.style.display = 'none'; document.getElementById('sidebar').classList.remove('open'); } }
+        window.addEventListener('resize', checkResponsive); checkResponsive();
+    </script>
+</body>
+
+</html>
