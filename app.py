@@ -18,11 +18,6 @@ hide_st_style = """
                 padding-left: 0rem;
                 padding-right: 0rem;
             }
-            iframe {
-                border: none;
-                width: 100%;
-                height: 100vh;
-            }
             </style>
             """
 st.markdown(hide_st_style, unsafe_allow_html=True)
