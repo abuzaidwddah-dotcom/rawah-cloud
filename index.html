@@ -2818,9 +2818,18 @@
             fetchAdminCats(); // جلب الفئات الإدارية ديناميكياً
             fetchDonors(); // جلب المانحين ديناميكياً
         }
-                async function startApp() {
+                     /* === التشغيل === */
+        async function startApp() {
             await loadDB();
             initApp();
+        }
+        
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', startApp);
+        } else {
+            startApp();
+        }
+
 
         });
         function checkResponsive() { const t = document.getElementById('menuToggle'); if (window.innerWidth <= 768) t.style.display = ''; else { t.style.display = 'none'; document.getElementById('sidebar').classList.remove('open'); } }
